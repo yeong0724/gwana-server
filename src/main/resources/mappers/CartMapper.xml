@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gwana.server.mapper.CartMapper">
+    <!-- Cart Update or Insert -->
+    <insert id="upsertCart" parameterType="com.gwana.server.dto.cart.CartUpdateRequest">
+        <![CDATA[
+        INSERT INTO cart (product_id, user_id, quantity, created_by, created_at)
+        VALUES (#{productId}, #{userId}, #{quantity}, #{createdBy}, #{createdAt})
+            ON DUPLICATE KEY UPDATE
+                                 quantity = quantity + VALUES(quantity),
+                                 modified_at = #{modifiedAt},
+                                 modified_by = #{modifiedBy}
+        ]]>
+    </insert>
+
+    <!-- Cart Search By UserId -->
+    <select id="selectCartList" resultType="com.gwana.server.dto.cart.CartResponse">
+        SELECT c.cart_id,
+               c.product_id,
+               c.quantity,
+               p.product_name,
+               p.category_name,
+               p.price,
+               p.shipping_price,
+               p.images
+        FROM cart c LEFT JOIN product p ON c.product_id = p.product_id
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- Cart Delete -->
+    <delete id="deleteCart" parameterType="string">
+        DELETE FROM cart
+        WHERE cart_id = #{cartId}
+    </delete>
+
+    <update id="updateCartQuantity" parameterType="com.gwana.server.dto.cart.CartUpdateRequest">
+        UPDATE cart
+        SET quantity = #{quantity},
+            modified_by = #{modifiedBy},
+            modified_at = #{modifiedAt}
+        WHERE cart_id = #{cartId}
+    </update>
+
+    <!-- Delete PaymentSession -->
+    <delete id="deletePaymentSession" parameterType="string">
+        DELETE FROM payment_session
+        WHERE user_id = #{userId}
+    </delete>
+
+    <insert id="createPaymentSession" parameterType="com.gwana.server.dto.cart.PaymentSessionRequest">
+        INSERT INTO payment_session (
+            session_id,
+            product_id,
+            quantity,
+            user_id,
+            expires_at
+        ) VALUES (
+            #{sessionId},
+            #{productId},
+            #{quantity},
+            #{userId},
+            #{expiresAt}
+        )
+    </insert>
+
+    <select id="getPaymentSession" resultType="com.gwana.server.dto.cart.PaymentSessionResponse">
+        SELECT ps.product_id,
+               quantity,
+               p.product_name,
+               p.category_name,
+               p.price,
+               p.shipping_price,
+               p.images
+        FROM payment_session ps LEFT JOIN product p ON ps.product_id = p.product_id
+        WHERE session_id = #{sessionId}
+          AND expires_at > CURRENT_TIMESTAMP
+    </select>
+</mapper>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gwana.server.mapper.ProductMapper">
+    <resultMap id="ProductResultMap" type="com.gwana.server.dto.product.ProductListResponse">
+        <id property="productId" column="product_id"/>
+        <result property="productName" column="product_name"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="images" column="images" typeHandler="com.gwana.server.common.utils.StringArrayTypeHandler"/>
+        <result property="infos" column="infos" typeHandler="com.gwana.server.common.utils.StringArrayTypeHandler"/>
+        <result property="price" column="price"/>
+        <result property="shippingPrice" column="shipping_price"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="modifiedAt" column="modified_at"/>
+        <result property="modifiedBy" column="modified_by"/>
+    </resultMap>
+
+    <select id="selectProductList" resultMap="ProductResultMap">
+        SELECT * FROM product
+        <where>
+            <if test="categoryId != null and categoryId != ''">
+                category_id = #{categoryId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectProduct" parameterType="com.gwana.server.dto.product.ProductRequest" resultMap="ProductResultMap">
+        SELECT * FROM product WHERE product_id = #{productId}
+    </select>
+</mapper>

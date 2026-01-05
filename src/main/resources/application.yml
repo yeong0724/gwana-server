@@ -1,0 +1,84 @@
+spring:
+  devtools:
+    restart:
+      enabled: false
+  application:
+    name: gwana-server
+
+  datasource:
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    url: jdbc:log4jdbc:mysql://localhost:3306/social-login?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 1234
+
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: 5d2d2c019e26a0aa2bec0d372d25a460
+            client-secret: u7rooE7phRvsCwGICLGSFMDZbOSBYpjb
+            client-name: Kakao
+            authorization-grant-type: authorization_code
+            redirect-uri: http://localhost:3000/login/oauth2/code/kakao
+            scope: profile_nickname,profile_image,account_email,name,gender,birthday,birthyear,phone_number
+            client-authentication-method: client_secret_post
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+      kakao:
+        token-url: https://kauth.kakao.com/oauth/token
+        userinfo-api-url: https://kapi.kakao.com/v2/user/me
+
+jwt:
+  # openssl rand -hex 32
+  secret: FlRpX30pMqDbiAkmlfArbrmVkDD4RqISskGZmBFax5oGVxzXXWUzTR5JyskiHMIV9M1Oicegkpi46AdvrcX1E6CmTUBc6IFbTPiD
+  expire:
+    access-token: 30 # 30분
+    refresh-token: 720 # 24시간
+
+app:
+  cookie:
+    secure: false
+    max-age: 86400
+  kakao:
+    logout-uri: https://kauth.kakao.com/oauth/logout
+#    ip check
+    logout-redirect-uri: http://localhost:3000/login/oauth2/logout/kakao
+    logout-token-uri: https://kapi.kakao.com/v1/user/logout
+
+# MyBatis 상세 로그 활성화
+mybatis:
+  mapper-locations: classpath:mappers/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+server:
+  address: 0.0.0.0  # 모든 IP에서 접근 허용
+  port: 8080
+
+# 로깅 설정 추가
+logging:
+  level:
+    jdbc.sqlonly: DEBUG
+    jdbc.resultsettable: DEBUG  # 결과 테이블 형태로 보기 (선택)
+    jdbc.sqltiming: OFF      # 실행 시간 (필요하면 DEBUG)
+    jdbc.audit: OFF
+    jdbc.resultset: OFF
+    jdbc.connection: OFF
+
+    web: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+
+    # MyBatis 관련 로그
+    com.inflearn.sociallogin.mapper: DEBUG  # 본인 Mapper 패키지
+    org.apache.ibatis: DEBUG
+    org.mybatis: DEBUG
+
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gwana.server.mapper.UserMapper">
+    <resultMap id="userResponseResultMap" type="com.gwana.server.dto.user.UserDto">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="role" column="role" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="modifiedAt" column="modified_at"/>
+        <result property="modifiedBy" column="modified_by"/>
+    </resultMap>
+
+    <select id="findUserByUserId" resultMap="userResponseResultMap">
+        SELECT user_id,
+               username,
+               password,
+               email,
+               phone,
+               role,
+               created_at,
+               created_by,
+               modified_at,
+               modified_by
+        FROM users
+        WHERE user_id = #{userId}
+    </select>
+    <select id="findUserByEmail" resultMap="userResponseResultMap">
+        SELECT user_id,
+               username,
+               email,
+               password,
+               phone,
+               role,
+               created_at,
+               created_by,
+               modified_at,
+               modified_by
+        FROM users
+        WHERE email = #{email}
+    </select>
+
+    <insert id="createUser" parameterType="com.gwana.server.dto.user.UserDto">
+        INSERT INTO users(user_id, username, password, email, phone, created_at, created_by, modified_at, modified_by, role)
+        VALUES(#{userId}, #{username}, #{password}, #{email}, #{phone}, #{createdAt}, #{createdBy}, #{modifiedAt}, #{modifiedBy}, #{role})
+    </insert>
+
+    <select id="findSocialAccountByProviderId" resultType="com.gwana.server.dto.socialAccount.SocialAccountResponse">
+        SELECT social_account_id as socialAccountId,
+               user_id           as userId,
+               provider_id       as providerId,
+               provider          as provider
+        FROM social_account
+        WHERE provider = #{provider}
+          AND provider_id = #{providerId}
+    </select>
+
+    <select id="selectKakaoProviderId">
+        SELECT provider_id
+        FROM social_account
+        WHERE user_id = #{userId}
+          AND provider = 'kakao'
+    </select>
+
+    <insert id="createSocialAccount" parameterType="com.gwana.server.dto.socialAccount.SocialAccountRequest">
+        INSERT INTO
+            social_account(social_account_id,
+                           user_id,
+                           provider_id,
+                           provider,
+                           created_at,
+                           created_by,
+                           modified_at,
+                           modified_by)
+        VALUES(#{socialAccountId},
+               #{userId},
+               #{providerId},
+               #{provider},
+               #{createdAt},
+               #{createdBy},
+               #{modifiedAt},
+               #{modifiedBy})
+    </insert>
+</mapper>
