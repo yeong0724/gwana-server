@@ -7,7 +7,7 @@ spring:
 
   datasource:
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: jdbc:log4jdbc:mysql://localhost:3306/social-login?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:log4jdbc:mysql://localhost:3306/social-login?serverTimezone=UTC
     username: root
     password: 1234
 
@@ -46,7 +46,7 @@ app:
     max-age: 86400
   kakao:
     logout-uri: https://kauth.kakao.com/oauth/logout
-#    ip check
+    #    ip check
     logout-redirect-uri: http://localhost:3000/login/oauth2/logout/kakao
     logout-token-uri: https://kapi.kakao.com/v1/user/logout
 

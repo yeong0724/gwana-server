@@ -11,5 +11,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class LoginResponse {
     private String accessToken;
-    private String useId;
+    private String loginType;
+    private String username;
+    private String email;
 }

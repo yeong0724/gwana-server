@@ -1,5 +1,6 @@
 package com.gwana.server.controller;
 
+import com.gwana.server.common.security.JwtTokenProvider;
 import com.gwana.server.common.utils.ApiResponse;
 import com.gwana.server.common.utils.TokenCookieManager;
 import com.gwana.server.dto.socialAccount.SocialAccountRequest;
@@ -74,7 +75,7 @@ public class UserController {
 	}
 
 	@PostMapping("/refresh/token")
-	public ApiResponse<String> refreshToken(
+	public ApiResponse<LoginResponse> refreshToken(
 			@RequestBody RefreshTokenRequest refreshTokenRequest,
 			@CookieValue(name = "refreshToken", required = false) String refreshTokenFromCookie,
 			HttpServletResponse httpServletResponse
@@ -82,13 +83,19 @@ public class UserController {
 		String accessToken = refreshTokenRequest.getAccessToken();
 
 		TokenResponse newToken = tokenService.refreshToken(accessToken, refreshTokenFromCookie);
+		String userId = newToken.getUserId();
 		tokenCookieManager.setRefreshTokenCookie(httpServletResponse, newToken.getRefreshToken());
-
-		return ApiResponse.ok(newToken.getAccessToken());
+		SocialUser socialUser = userService.findUserByUserId(userId);
+		return ApiResponse.ok(LoginResponse.builder()
+				.accessToken(newToken.getAccessToken())
+				.loginType(socialUser.getProvider())
+				.username(socialUser.getUsername())
+				.email(socialUser.getEmail())
+				.build());
 	}
 
 	@PostMapping("/callback")
-	public ApiResponse<String> kakaoLoginCallback(@RequestBody Map<String, String> request, HttpServletResponse httpServletResponse) {
+	public ApiResponse<LoginResponse> kakaoLoginCallback(@RequestBody Map<String, String> request, HttpServletResponse httpServletResponse) {
 		// 1. Kakao Social Login을 성공해 Authorization Server로 부터 Code를 전달 받는다.
 		String code = request.get("code");
 		String accessTokenFromKakao = tokenService.getAccessTokenByCode(code);
@@ -96,6 +103,8 @@ public class UserController {
 
 		Long providerId = userFromKakao.getProviderId();
 		String provider = userFromKakao.getProvider();
+		String username = userFromKakao.getUsername();
+		String email = userFromKakao.getEmail();
 
 		UserSignupRequest userSignupRequest = UserSignupRequest.builder()
 				.email(userFromKakao.getEmail())
@@ -117,7 +126,12 @@ public class UserController {
 		TokenResponse tokenResponse = tokenService.insertToken(userDto.getUserId(), accessTokenFromKakao);
 		tokenCookieManager.setRefreshTokenCookie(httpServletResponse, tokenResponse.getRefreshToken());
 
-		return ApiResponse.ok(tokenResponse.getAccessToken());
+		return ApiResponse.ok(LoginResponse.builder()
+				.accessToken(tokenResponse.getAccessToken())
+				.loginType(provider)
+				.username(username)
+				.email(email)
+				.build());
 	}
 
 	@GetMapping("/oauth2/logout/kakao")

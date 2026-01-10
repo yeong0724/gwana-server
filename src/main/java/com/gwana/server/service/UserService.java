@@ -4,6 +4,7 @@ import com.gwana.server.common.enums.Role;
 import com.gwana.server.common.exception.UserException;
 import com.gwana.server.dto.socialAccount.SocialAccountRequest;
 import com.gwana.server.dto.socialAccount.SocialAccountResponse;
+import com.gwana.server.dto.user.SocialUser;
 import com.gwana.server.dto.user.UserDto;
 import com.gwana.server.dto.user.UserSignupRequest;
 import com.gwana.server.mapper.UserMapper;
@@ -75,7 +76,7 @@ public class UserService {
 	}
 
 	@Transactional
-	public UserDto findUserByUserId(String userId) {
+	public SocialUser findUserByUserId(String userId) {
 		return userMapper.findUserByUserId(userId)
 				.orElseThrow(UserException.UserNotExistException::new);
 	}

@@ -2,6 +2,7 @@
 package com.gwana.server.common.security;
 
 import com.gwana.server.dto.user.AuthUser;
+import com.gwana.server.dto.user.SocialUser;
 import com.gwana.server.dto.user.UserDto;
 import com.gwana.server.service.TokenService;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -58,18 +59,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		String accessToken = resolveToken(request);
 		try {
 			if (accessToken != null && tokenService.validateToken(accessToken)) {
-				UserDto user = tokenService.findUserByAccessToken(accessToken);
-				List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole().toString()));
-				String password = Optional.ofNullable(user.getPassword()).orElse("password");
+				SocialUser socialUser = tokenService.findUserByAccessToken(accessToken);
+				List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(socialUser.getRole().toString()));
+				String password = Optional.ofNullable(socialUser.getPassword()).orElse("password");
 				AuthUser principal = new AuthUser(
-						user.getUserId(),
-						user.getUsername(),
+						socialUser.getUserId(),
+						socialUser.getUsername(),
 						password,
-						user.getEmail(),
-						user.getPhone(),
+						socialUser.getEmail(),
+						socialUser.getPhone(),
 						authorities
 				);
-				Authentication authentication = new UsernamePasswordAuthenticationToken(principal, user.getUserId(), authorities);
+				Authentication authentication = new UsernamePasswordAuthenticationToken(principal, socialUser.getUserId(), authorities);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			}
 

@@ -14,19 +14,17 @@
         <result property="modifiedBy" column="modified_by"/>
     </resultMap>
 
-    <select id="findUserByUserId" resultMap="userResponseResultMap">
-        SELECT user_id,
-               username,
-               password,
-               email,
-               phone,
-               role,
-               created_at,
-               created_by,
-               modified_at,
-               modified_by
-        FROM users
-        WHERE user_id = #{userId}
+    <select id="findUserByUserId" resultType="com.gwana.server.dto.user.SocialUser">
+        SELECT u.user_id,
+               u.username,
+               u.password,
+               u.email,
+               u.phone,
+               u.role,
+               sa.social_account_id,
+               sa.provider
+        FROM users u LEFT JOIN social_account sa ON sa.user_id = u.user_id
+        WHERE u.user_id = #{userId}
     </select>
     <select id="findUserByEmail" resultMap="userResponseResultMap">
         SELECT user_id,

@@ -85,8 +85,7 @@ public class WebSecurityConfig {
             // 명시적으로 허용할 Origin 지정
             configuration.setAllowedOrigins(Arrays.asList(
                     "http://localhost:3000",
-                    "http://192.168.45.8:3000",
-                    "http://127.0.0.1:3000"
+                    "https://gwana.vercel.app"
             ));
 
             configuration.setAllowCredentials(true);

@@ -5,6 +5,7 @@ import com.gwana.server.client.KakaoUserHttpClient;
 import com.gwana.server.common.exception.TokenException;
 import com.gwana.server.dto.token.Token;
 import com.gwana.server.dto.token.TokenResponse;
+import com.gwana.server.dto.user.SocialUser;
 import com.gwana.server.dto.user.UserDto;
 import com.gwana.server.dto.user.UserFromKakao;
 import com.gwana.server.mapper.TokenMapper;
@@ -85,7 +86,7 @@ public class TokenService {
                 .build();
     }
 
-    public UserDto findUserByAccessToken(String accessToken) {
+    public SocialUser findUserByAccessToken(String accessToken) {
         Claims claims = parseClaims(accessToken);
         Object userId = claims.get("userId");
 
@@ -154,6 +155,7 @@ public class TokenService {
         return TokenResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
+                .userId(userId)
                 .build();
     }
 
