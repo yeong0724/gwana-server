@@ -57,10 +57,10 @@ public class GlobalExceptionAdvice {
         return ResponseEntity.status(500).body(ApiResponse.fail(DEFAULT_ERROR));
     }
 
-    @ExceptionHandler(PaymentException.class)
-    public ResponseEntity<?> handleMyBatisException(PaymentException paymentException) {
-        String code = paymentException.getCode();
-        String message = paymentException.getMessage();
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<?> handleCustomException(CustomException customException) {
+        String code = customException.getCode();
+        String message = customException.getMessage();
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.generalFail(code, message));
     }
 }

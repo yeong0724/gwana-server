@@ -1,9 +1,7 @@
 package com.gwana.server.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gwana.server.common.exception.CommonException;
-import com.gwana.server.common.exception.PaymentException;
+import com.gwana.server.common.exception.CustomException;
 import com.gwana.server.dto.payment.TossErrorResponse;
 import com.gwana.server.dto.payment.TossPaymentRequest;
 import com.gwana.server.dto.payment.TossPaymentResponse;
@@ -61,7 +59,7 @@ public class TossPaymentClient {
 
             TossErrorResponse error = new ObjectMapper()
                     .readValue(exception.getResponseBodyAsString(), TossErrorResponse.class);
-            throw new PaymentException(error.getCode(), error.getMessage());
+            throw new CustomException(error.getCode(), error.getMessage());
         }
     }
 }

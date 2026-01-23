@@ -1,5 +1,5 @@
 app:
-  base-url: http://localhost:3000
+  base-url: ${APP_BASE_URL}
   cookie:
     secure: true
     max-age: 86400
@@ -18,9 +18,9 @@ spring:
 
   datasource:
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: jdbc:log4jdbc:mysql://localhost:3306/social-login?serverTimezone=UTC
-    username: root
-    password: 1234
+    url: jdbc:log4jdbc:mysql://mysql-gwana-database.crwassomidre.ap-northeast-2.rds.amazonaws.com:3306/gwana-db?serverTimezone=UTC
+    username: myuser
+    password: "${DB_PASSWORD}"
 
   security:
     oauth2:
@@ -28,7 +28,7 @@ spring:
         registration:
           kakao:
             client-id: 5d2d2c019e26a0aa2bec0d372d25a460
-            client-secret: u7rooE7phRvsCwGICLGSFMDZbOSBYpjb
+            client-secret: ${KAKAO_CLIENT_SECRET}
             client-name: Kakao
             authorization-grant-type: authorization_code
             redirect-uri: ${app.base-url}/login/oauth2/code/kakao
@@ -44,15 +44,24 @@ spring:
         token-url: https://kauth.kakao.com/oauth/token
         userinfo-api-url: https://kapi.kakao.com/v2/user/me
 
+cloud:
+  aws:
+    s3:
+      bucket: gwana-images
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    region:
+      static: ap-northeast-2
+
 jwt:
-  # openssl rand -hex 32
-  secret: FlRpX30pMqDbiAkmlfArbrmVkDD4RqISskGZmBFax5oGVxzXXWUzTR5JyskiHMIV9M1Oicegkpi46AdvrcX1E6CmTUBc6IFbTPiD
+  secret: ${JWT_SECRET}
   expire:
     access-token: 30 # 30분
     refresh-token: 720 # 24시간
 
 toss:
-  secret-key: test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6
+  secret-key: ${TOSS_SECRET_KEY}
   api-url: https://api.tosspayments.com
 
 # MyBatis 상세 로그 활성화
@@ -65,25 +74,9 @@ server:
   address: 0.0.0.0  # 모든 IP에서 접근 허용
   port: 8080
 
-# 로깅 설정 추가
 logging:
   level:
-    jdbc.sqlonly: DEBUG
-    jdbc.resultsettable: DEBUG  # 결과 테이블 형태로 보기 (선택)
-    jdbc.sqltiming: OFF      # 실행 시간 (필요하면 DEBUG)
-    jdbc.audit: OFF
-    jdbc.resultset: OFF
-    jdbc.connection: OFF
-
-    web: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.security: DEBUG
-
-    # MyBatis 관련 로그
-    com.inflearn.sociallogin.mapper: DEBUG  # 본인 Mapper 패키지
-    org.apache.ibatis: DEBUG
-    org.mybatis: DEBUG
-
     root: INFO
+    com.gwana: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

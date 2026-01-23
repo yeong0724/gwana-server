@@ -15,7 +15,14 @@ public enum ErrorCode {
     INVALID_TOKEN("4004", "유효한 토큰이 아닙니다. 로그인해주세요."),
     EXPIRED_TOKEN_ERROR("4005", "로그인이 만료되었습니다. 다시 로그인해주세요."),
     ACCESS_DENIED("3000", "해당 기능에 접근이 제한됩니다."),
-    NOT_MATCHED_AMOUNT("5001", "결제 금액이 일치하지 않습니다.");
+    NOT_MATCHED_AMOUNT("5001", "결제 금액이 일치하지 않습니다."),
+    FILE_EMPTY("6001", "파일이 비어있습니다."),
+    FILE_SIZE_EXCEEDED("6002", "파일 크기가 허용 용량을 초과했습니다."),
+    FILE_VALIDATION_ERROR("6003", "파일 검증 중 오류가 발생했습니다."),
+    NOT_ALLOWED_FILE_TYPE("6004", "허용되지 않는 파일 형식입니다. (jpg, png, gif, webp만 허용)"),
+    FILE_UPLOAD_FAILED("6005", "파일 업로드에 실패했습니다."),
+    S3_SERVER_ERROR("6006", "파일 서버에 오류가 발생했습니다."),
+    S3_CONNECTION_ERROR("6007", "파일 서버 연결에 실패했습니다.");
 
     private final String code;
     private final String message;
