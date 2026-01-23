@@ -14,7 +14,8 @@ public enum ErrorCode {
     UNAUTHORIZED_ERROR("4003", "인증이 유효하지 않습니다. 로그인해주세요."),
     INVALID_TOKEN("4004", "유효한 토큰이 아닙니다. 로그인해주세요."),
     EXPIRED_TOKEN_ERROR("4005", "로그인이 만료되었습니다. 다시 로그인해주세요."),
-    ACCESS_DENIED("3000", "해당 기능에 접근이 제한됩니다.");
+    ACCESS_DENIED("3000", "해당 기능에 접근이 제한됩니다."),
+    NOT_MATCHED_AMOUNT("5001", "결제 금액이 일치하지 않습니다.");
 
     private final String code;
     private final String message;

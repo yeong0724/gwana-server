@@ -14,6 +14,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.RestClientResponseException;
 
 @Slf4j
 @RestControllerAdvice
@@ -54,5 +55,12 @@ public class GlobalExceptionAdvice {
     public ResponseEntity<?> handleMyBatisException(MyBatisSystemException e) {
         log.error("MyBatisSystemException :", e);
         return ResponseEntity.status(500).body(ApiResponse.fail(DEFAULT_ERROR));
+    }
+
+    @ExceptionHandler(PaymentException.class)
+    public ResponseEntity<?> handleMyBatisException(PaymentException paymentException) {
+        String code = paymentException.getCode();
+        String message = paymentException.getMessage();
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.generalFail(code, message));
     }
 }

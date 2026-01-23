@@ -3,6 +3,7 @@
 <mapper namespace="com.gwana.server.mapper.UserMapper">
     <resultMap id="userResponseResultMap" type="com.gwana.server.dto.user.UserDto">
         <id property="userId" column="user_id"/>
+        <id property="customerKey" column="customer_key"/>
         <result property="username" column="username"/>
         <result property="password" column="password"/>
         <result property="email" column="email"/>
@@ -16,6 +17,7 @@
 
     <select id="findUserByUserId" resultType="com.gwana.server.dto.user.SocialUser">
         SELECT u.user_id,
+               u.customer_key,
                u.username,
                u.password,
                u.email,
@@ -28,6 +30,7 @@
     </select>
     <select id="findUserByEmail" resultMap="userResponseResultMap">
         SELECT user_id,
+               customer_key,
                username,
                email,
                password,
@@ -42,8 +45,31 @@
     </select>
 
     <insert id="createUser" parameterType="com.gwana.server.dto.user.UserDto">
-        INSERT INTO users(user_id, username, password, email, phone, created_at, created_by, modified_at, modified_by, role)
-        VALUES(#{userId}, #{username}, #{password}, #{email}, #{phone}, #{createdAt}, #{createdBy}, #{modifiedAt}, #{modifiedBy}, #{role})
+        INSERT INTO users (
+            user_id,
+            customer_key,
+            username,
+            password,
+            email,
+            phone,
+            created_at,
+            created_by,
+            modified_at,
+            modified_by,
+            role
+        ) VALUES (
+            #{userId},
+            #{customerKey},
+            #{username},
+            #{password},
+            #{email},
+            #{phone},
+            #{createdAt},
+            #{createdBy},
+            #{modifiedAt},
+            #{modifiedBy},
+            #{role}
+        )
     </insert>
 
     <select id="findSocialAccountByProviderId" resultType="com.gwana.server.dto.socialAccount.SocialAccountResponse">
@@ -64,22 +90,24 @@
     </select>
 
     <insert id="createSocialAccount" parameterType="com.gwana.server.dto.socialAccount.SocialAccountRequest">
-        INSERT INTO
-            social_account(social_account_id,
-                           user_id,
-                           provider_id,
-                           provider,
-                           created_at,
-                           created_by,
-                           modified_at,
-                           modified_by)
-        VALUES(#{socialAccountId},
-               #{userId},
-               #{providerId},
-               #{provider},
-               #{createdAt},
-               #{createdBy},
-               #{modifiedAt},
-               #{modifiedBy})
+        INSERT INTO social_account (
+            social_account_id,
+            user_id,
+            provider_id,
+            provider,
+            created_at,
+            created_by,
+            modified_at,
+            modified_by
+        ) VALUES (
+            #{socialAccountId},
+            #{userId},
+            #{providerId},
+            #{provider},
+            #{createdAt},
+            #{createdBy},
+            #{modifiedAt},
+            #{modifiedBy}
+        )
     </insert>
 </mapper>

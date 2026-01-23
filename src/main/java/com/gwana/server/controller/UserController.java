@@ -86,11 +86,15 @@ public class UserController {
 		String userId = newToken.getUserId();
 		tokenCookieManager.setRefreshTokenCookie(httpServletResponse, newToken.getRefreshToken());
 		SocialUser socialUser = userService.findUserByUserId(userId);
+
 		return ApiResponse.ok(LoginResponse.builder()
 				.accessToken(newToken.getAccessToken())
 				.loginType(socialUser.getProvider())
+				.userId(userId)
+				.customerKey(socialUser.getCustomerKey())
 				.username(socialUser.getUsername())
 				.email(socialUser.getEmail())
+				.phone(socialUser.getPhone())
 				.build());
 	}
 
@@ -103,8 +107,10 @@ public class UserController {
 
 		Long providerId = userFromKakao.getProviderId();
 		String provider = userFromKakao.getProvider();
+
 		String username = userFromKakao.getUsername();
 		String email = userFromKakao.getEmail();
+		String phone = userFromKakao.getPhone();
 
 		UserSignupRequest userSignupRequest = UserSignupRequest.builder()
 				.email(userFromKakao.getEmail())
@@ -113,6 +119,9 @@ public class UserController {
 				.build();
 
 		UserDto userDto = userService.createUserByKakao(userSignupRequest);
+		String userId = userDto.getUserId();
+		String customerKey = userDto.getCustomerKey();
+
 		SocialAccountRequest socialAccountRequest = SocialAccountRequest.builder()
 				.socialAccountId(TSID.Factory.getTsid().toString())
 				.userId(userDto.getUserId())
@@ -129,8 +138,11 @@ public class UserController {
 		return ApiResponse.ok(LoginResponse.builder()
 				.accessToken(tokenResponse.getAccessToken())
 				.loginType(provider)
+				.userId(userId)
+				.customerKey(customerKey)
 				.username(username)
 				.email(email)
+				.phone(phone)
 				.build());
 	}
 

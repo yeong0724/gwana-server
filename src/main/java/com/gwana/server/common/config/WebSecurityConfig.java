@@ -4,6 +4,7 @@ import com.gwana.server.common.exception.CustomAccessDeniedHandler;
 import com.gwana.server.common.exception.CustomAuthenticationEntryPoint;
 import com.gwana.server.common.security.CustomUserDetailsService;
 import com.gwana.server.common.security.JwtAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -27,6 +28,9 @@ public class WebSecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    @Value("${app.base-url}")
+    private String appBaseUrl;
 
     public WebSecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
@@ -84,8 +88,8 @@ public class WebSecurityConfig {
 
             // 명시적으로 허용할 Origin 지정
             configuration.setAllowedOrigins(Arrays.asList(
-                    "http://localhost:3000",
-                    "https://gwana.vercel.app"
+                    appBaseUrl,
+                    "http://192.168.45.7:3000"
             ));
 
             configuration.setAllowCredentials(true);

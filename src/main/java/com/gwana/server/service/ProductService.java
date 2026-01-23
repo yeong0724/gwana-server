@@ -1,8 +1,6 @@
 package com.gwana.server.service;
 
-import com.gwana.server.dto.product.ProductListRequest;
-import com.gwana.server.dto.product.ProductListResponse;
-import com.gwana.server.dto.product.ProductRequest;
+import com.gwana.server.dto.product.*;
 import com.gwana.server.mapper.ProductMapper;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +14,25 @@ public class ProductService {
         this.productMapper = productMapper;
     }
 
-    public List<ProductListResponse> getProductList(ProductListRequest productListRequest) {
+    public List<Product> getProductList(ProductListRequest productListRequest) {
         return productMapper.selectProductList(productListRequest);
     }
 
-    public ProductListResponse getProduct(ProductRequest productRequest) {
-        return productMapper.selectProduct(productRequest);
+    public ProductDetailResponse getProduct(ProductRequest productRequest) {
+        Product product = productMapper.selectProduct(productRequest);
+        List<ProductOption> options = productMapper.selectProductOption(productRequest);
+
+        return ProductDetailResponse.builder()
+                .productId(product.getProductId())
+                .productName(product.getProductName())
+                .categoryId(product.getCategoryId())
+                .categoryName(product.getCategoryName())
+                .images(product.getImages())
+                .infos(product.getInfos())
+                .price(product.getPrice())
+                .shippingPrice(product.getShippingPrice())
+                .optionRequired(product.isOptionRequired())
+                .options(options)
+                .build();
     }
 }

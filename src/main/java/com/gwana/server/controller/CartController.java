@@ -1,10 +1,7 @@
 package com.gwana.server.controller;
 
 import com.gwana.server.common.utils.ApiResponse;
-import com.gwana.server.dto.cart.CartUpdateRequest;
-import com.gwana.server.dto.cart.CartResponse;
-import com.gwana.server.dto.cart.PaymentSessionRequest;
-import com.gwana.server.dto.cart.PaymentSessionResponse;
+import com.gwana.server.dto.cart.*;
 import com.gwana.server.service.CartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +14,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/cart")
 public class CartController {
-
     private final CartService cartService;
 
     @PostMapping("/add")
@@ -38,8 +34,14 @@ public class CartController {
     }
 
     @PostMapping("/delete")
-    public ApiResponse<Void> deleteCart(@RequestBody List<String> cartIdList) {
-        cartService.deleteCart(cartIdList);
+    public ApiResponse<Void> deleteCart(@RequestBody CartDeleteRequest cartDeleteRequest) {
+        cartService.deleteCart(cartDeleteRequest);
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping("/delete/list")
+    public ApiResponse<Void> deleteCartList(@RequestBody List<String> cartIdList) {
+        cartService.deleteCartList(cartIdList);
         return ApiResponse.ok(null);
     }
 
@@ -47,18 +49,5 @@ public class CartController {
     public ApiResponse<Void> updateCart(@RequestBody CartUpdateRequest cartUpdateRequest) {
         cartService.updateCartQuantity(cartUpdateRequest);
         return ApiResponse.ok(null);
-    }
-
-    @PostMapping("/create/payment/session")
-    public ApiResponse<String> createPaymentSession(@RequestBody List<PaymentSessionRequest> paymentSessionRequestList) {
-        String sessionId = cartService.createPaymentSession(paymentSessionRequestList);
-
-        return ApiResponse.ok(sessionId);
-    }
-
-    @PostMapping("/search/payment/session")
-    public ApiResponse<List<PaymentSessionResponse>> createPaymentSession(@RequestBody PaymentSessionRequest paymentSessionRequest) {
-        String sessionId = paymentSessionRequest.getSessionId();
-        return ApiResponse.ok(cartService.getPaymentSession(sessionId));
     }
 }

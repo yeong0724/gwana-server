@@ -15,6 +15,7 @@ import lombok.experimental.SuperBuilder;
 public class CartUpdateRequest extends BaseDto {
     private Long cartId;
     private String productId;
-    private String userId;
+    private String optionId;
     private int quantity;
+    private String userId;
 }

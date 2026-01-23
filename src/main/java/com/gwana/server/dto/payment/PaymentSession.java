@@ -1,4 +1,4 @@
-package com.gwana.server.dto.cart;
+package com.gwana.server.dto.payment;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PaymentSessionResponse {
+public class PaymentSession {
     private String productId;
     private String productName;
     private String categoryName;

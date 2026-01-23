@@ -4,17 +4,17 @@
     <!-- Cart Update or Insert -->
     <insert id="upsertCart" parameterType="com.gwana.server.dto.cart.CartUpdateRequest">
         <![CDATA[
-        INSERT INTO cart (product_id, user_id, quantity, created_by, created_at)
-        VALUES (#{productId}, #{userId}, #{quantity}, #{createdBy}, #{createdAt})
+        INSERT INTO cart (product_id, option_id, user_id, quantity, created_by, created_at)
+        VALUES (#{productId}, #{optionId}, #{userId}, #{quantity}, #{createdBy}, #{createdAt})
             ON DUPLICATE KEY UPDATE
-                                 quantity = quantity + VALUES(quantity),
+                                 quantity = quantity + #{quantity},
                                  modified_at = #{modifiedAt},
                                  modified_by = #{modifiedBy}
         ]]>
     </insert>
 
     <!-- Cart Search By UserId -->
-    <select id="selectCartList" resultType="com.gwana.server.dto.cart.CartResponse">
+    <select id="selectCartList" resultType="com.gwana.server.dto.cart.Cart">
         SELECT c.cart_id,
                c.product_id,
                c.quantity,
@@ -22,15 +22,33 @@
                p.category_name,
                p.price,
                p.shipping_price,
-               p.images
-        FROM cart c LEFT JOIN product p ON c.product_id = p.product_id
+               p.images,
+               p.option_required,
+               po.option_id,
+               po.option_name,
+               po.option_price
+        FROM cart c
+            LEFT JOIN product p ON c.product_id = p.product_id
+            LEFT JOIN product_option po ON c.option_id = po.option_id
         WHERE user_id = #{userId}
     </select>
 
     <!-- Cart Delete -->
-    <delete id="deleteCart" parameterType="string">
+    <delete id="deleteCart" parameterType="com.gwana.server.dto.cart.CartDeleteRequest">
         DELETE FROM cart
-        WHERE cart_id = #{cartId}
+        WHERE 1 = 1
+        <if test="cartId != null and cartId != ''">
+            AND cart_id = #{cartId}
+        </if>
+        <if test="optionId != null and optionId != ''">
+            AND option_id = #{optionId}
+        </if>
+        <if test="productId != null and productId != ''">
+            AND product_id = #{productId}
+        </if>
+        <if test="userId != null and userId != ''">
+            AND user_id = #{userId}
+        </if>
     </delete>
 
     <update id="updateCartQuantity" parameterType="com.gwana.server.dto.cart.CartUpdateRequest">
@@ -40,39 +58,4 @@
             modified_at = #{modifiedAt}
         WHERE cart_id = #{cartId}
     </update>
-
-    <!-- Delete PaymentSession -->
-    <delete id="deletePaymentSession" parameterType="string">
-        DELETE FROM payment_session
-        WHERE user_id = #{userId}
-    </delete>
-
-    <insert id="createPaymentSession" parameterType="com.gwana.server.dto.cart.PaymentSessionRequest">
-        INSERT INTO payment_session (
-            session_id,
-            product_id,
-            quantity,
-            user_id,
-            expires_at
-        ) VALUES (
-            #{sessionId},
-            #{productId},
-            #{quantity},
-            #{userId},
-            #{expiresAt}
-        )
-    </insert>
-
-    <select id="getPaymentSession" resultType="com.gwana.server.dto.cart.PaymentSessionResponse">
-        SELECT ps.product_id,
-               quantity,
-               p.product_name,
-               p.category_name,
-               p.price,
-               p.shipping_price,
-               p.images
-        FROM payment_session ps LEFT JOIN product p ON ps.product_id = p.product_id
-        WHERE session_id = #{sessionId}
-          AND expires_at > CURRENT_TIMESTAMP
-    </select>
 </mapper>

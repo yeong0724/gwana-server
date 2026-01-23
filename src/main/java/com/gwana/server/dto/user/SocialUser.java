@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 public class SocialUser {
     private String userId;
 
+    private String customerKey;
+
     private String username;
 
     private String password;

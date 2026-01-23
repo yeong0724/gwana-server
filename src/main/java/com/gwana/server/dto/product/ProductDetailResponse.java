@@ -1,4 +1,4 @@
-package com.gwana.server.dto.cart;
+package com.gwana.server.dto.product;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,19 +7,19 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Data
 @Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartResponse {
-    private Long cartId;
+public class ProductDetailResponse {
     private String productId;
     private String productName;
+    private String categoryId;
     private String categoryName;
-    private int quantity;
-    private int price;
-    private int shippingPrice;
     private String[] images;
+    private String[] infos;
+    private Integer price;
+    private Integer shippingPrice;
     private boolean optionRequired;
-    private List<CartOption> options;
+    private List<ProductOption> options;
 }

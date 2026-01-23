@@ -1,3 +1,14 @@
+app:
+  base-url: http://localhost:3000
+  cookie:
+    secure: true
+    max-age: 86400
+  kakao:
+    logout-uri: https://kauth.kakao.com/oauth/logout
+    # ip check
+    logout-redirect-uri: ${app.base-url}/login/oauth2/logout/kakao
+    logout-token-uri: https://kapi.kakao.com/v1/user/logout
+
 spring:
   devtools:
     restart:
@@ -20,7 +31,7 @@ spring:
             client-secret: u7rooE7phRvsCwGICLGSFMDZbOSBYpjb
             client-name: Kakao
             authorization-grant-type: authorization_code
-            redirect-uri: http://localhost:3000/login/oauth2/code/kakao
+            redirect-uri: ${app.base-url}/login/oauth2/code/kakao
             scope: profile_nickname,profile_image,account_email,name,gender,birthday,birthyear,phone_number
             client-authentication-method: client_secret_post
         provider:
@@ -40,15 +51,9 @@ jwt:
     access-token: 30 # 30분
     refresh-token: 720 # 24시간
 
-app:
-  cookie:
-    secure: false
-    max-age: 86400
-  kakao:
-    logout-uri: https://kauth.kakao.com/oauth/logout
-    #    ip check
-    logout-redirect-uri: http://localhost:3000/login/oauth2/logout/kakao
-    logout-token-uri: https://kapi.kakao.com/v1/user/logout
+toss:
+  secret-key: test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6
+  api-url: https://api.tosspayments.com
 
 # MyBatis 상세 로그 활성화
 mybatis:

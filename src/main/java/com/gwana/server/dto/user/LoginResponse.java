@@ -12,6 +12,9 @@ import lombok.experimental.SuperBuilder;
 public class LoginResponse {
     private String accessToken;
     private String loginType;
+    private String userId;
+    private String customerKey;
     private String username;
     private String email;
+    private String phone;
 }

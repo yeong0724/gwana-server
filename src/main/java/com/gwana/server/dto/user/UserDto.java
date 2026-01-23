@@ -13,6 +13,8 @@ import lombok.experimental.SuperBuilder;
 public class UserDto extends BaseDto {
 	private String userId;
 
+	private String customerKey;
+
 	private String username;
 
 	private String password;

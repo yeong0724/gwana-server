@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gwana.server.mapper.PaymentMapper">
+    <delete id="deletePaymentSession" parameterType="string">
+        DELETE FROM payment_session
+        WHERE user_id = #{userId}
+    </delete>
+
+    <select id="findByOrderId" parameterType="string" resultType="com.gwana.server.dto.payment.PaymentInfoResponse">
+        SELECT total_amount FROM payment_info WHERE order_id = #{orderId}
+    </select>
+
+    <insert id="createPaymentSession" parameterType="com.gwana.server.dto.payment.PaymentSessionRequest">
+        INSERT INTO payment_session (
+            session_id,
+            product_id,
+            quantity,
+            user_id,
+            expires_at
+        ) VALUES (
+            #{sessionId},
+            #{productId},
+            #{quantity},
+            #{userId},
+            #{expiresAt}
+        )
+    </insert>
+
+    <select id="getPaymentSession" resultType="com.gwana.server.dto.payment.PaymentSession">
+        SELECT ps.product_id,
+               ps.quantity,
+               p.product_name,
+               p.category_name,
+               p.price,
+               p.shipping_price,
+               p.images
+        FROM payment_session ps LEFT JOIN product p ON ps.product_id = p.product_id
+        WHERE session_id = #{sessionId}
+          AND expires_at > CURRENT_TIMESTAMP
+    </select>
+
+    <insert id="upsertPaymentInfo" parameterType="com.gwana.server.dto.payment.PaymentInfoRequest">
+        INSERT INTO payment_info (
+            session_id,
+            order_id,
+            user_id,
+            total_price,
+            total_shipping_price,
+            total_amount,
+            sender_name,
+            sender_phone,
+            recipient_name,
+            recipient_phone,
+            zonecode,
+            road_address,
+            detail_address,
+            delivery_request,
+            delivery_request_detail,
+            expires_at
+        ) VALUES (
+            #{sessionId},
+            #{orderId},
+            #{userId},
+            #{totalPrice},
+            #{totalShippingPrice},
+            #{totalAmount},
+            #{senderName},
+            #{senderPhone},
+            #{recipientName},
+            #{recipientPhone},
+            #{zonecode},
+            #{roadAddress},
+            #{detailAddress},
+            #{deliveryRequest},
+            #{deliveryRequestDetail},
+            #{expiresAt}
+        ) ON DUPLICATE KEY UPDATE
+            order_id = #{orderId},
+            total_price = #{totalPrice},
+            total_shipping_price = #{totalShippingPrice},
+            total_amount = #{totalShippingPrice},
+            sender_name = #{senderName},
+            sender_phone = #{senderPhone},
+            recipient_name = #{recipientName},
+            recipient_phone = #{recipientPhone},
+            zonecode = #{zonecode},
+            road_address = #{roadAddress},
+            detail_address = #{detailAddress},
+            delivery_request = #{deliveryRequest},
+            delivery_request_detail = #{deliveryRequestDetail},
+            expires_at = #{expiresAt}
+    </insert>
+</mapper>

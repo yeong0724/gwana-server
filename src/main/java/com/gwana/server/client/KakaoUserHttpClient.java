@@ -1,64 +1,68 @@
 package com.gwana.server.client;
 
 import com.gwana.server.dto.user.UserFromKakao;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.util.Map;
 
 @Component
-@RequiredArgsConstructor
 public class KakaoUserHttpClient {
-    @Value("${spring.security.oauth2.kakao.userinfo-api-url}")
-    private String KAKAO_USERINFO_API_URL;
 
-    @Value("${app.kakao.logout-token-uri}")
-    private String KAKAO_LOGOUT_TOKEN_URI;
+    private final RestClient restClient;
+    private final String userInfoUrl;
+    private final String logoutUrl;
+
+    public KakaoUserHttpClient(
+            @Value("${spring.security.oauth2.kakao.userinfo-api-url}") String userInfoUrl,
+            @Value("${app.kakao.logout-token-uri}") String logoutUrl
+    ) {
+        this.userInfoUrl = userInfoUrl;
+        this.logoutUrl = logoutUrl;
+        this.restClient = RestClient.create();
+    }
 
     public UserFromKakao findUserFromKakao(String accessToken) {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);  // 액세스 토큰을 Authorization Header에 추가
+        Map<String, Object> response = restClient.get()
+                .uri(userInfoUrl)
+                .header("Authorization", "Bearer " + accessToken)
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
 
-        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+        Long providerId = ((Number) response.get("id")).longValue();
+        Map<String, Object> kakaoAccount = (Map<String, Object>) response.get("kakao_account");
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                KAKAO_USERINFO_API_URL,
-                HttpMethod.GET,
-                httpEntity,
-                Map.class
-        );
-
-        Long providerId = (Long) response.getBody().get("id");
-
-        Map properties = (Map) response.getBody().get("kakao_account");
-
-        String username = (String) properties.get("name");
-        String email = (String) properties.get("email");
-        String phoneNumber = (String) properties.get("phone_number");
-
+        String phoneNumber = (String) kakaoAccount.get("phone_number");
         return UserFromKakao.builder()
-                .username(username)
-                .email(email)
-                .phone(phoneNumber)
+                .username((String) kakaoAccount.get("name"))
+                .email((String) kakaoAccount.get("email"))
+                .phone(getPhoneNumber(phoneNumber))
                 .provider("kakao")
                 .providerId(providerId)
                 .build();
     }
 
-    public void kakaoLogout(String authAccessToken) {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + authAccessToken);
+    public void kakaoLogout(String accessToken) {
+        restClient.post()
+                .uri(logoutUrl)
+                .header("Authorization", "Bearer " + accessToken)
+                .retrieve()
+                .toBodilessEntity();
+    }
 
-        HttpEntity<Void> request = new HttpEntity<>(headers);
+    public String getPhoneNumber(String phone) {
+        if (phone == null) return "";
 
-        restTemplate.exchange(KAKAO_LOGOUT_TOKEN_URI, HttpMethod.POST, request, String.class);
+        // 숫자만 추출
+        String digits = phone.replaceAll("[^0-9]", "");
+
+        // +82로 시작하면 0으로 변환
+        if (digits.startsWith("82")) {
+            digits = "0" + digits.substring(2);
+        }
+
+        return digits; // 01012345678 형태
     }
 }

@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -84,6 +85,7 @@ public class UserService {
 	private UserDto RequestToDto(UserSignupRequest userSignupRequest) {
 		return UserDto.builder()
 				.userId(TSID.Factory.getTsid().toString())
+				.customerKey(UUID.randomUUID().toString())
 				.username(userSignupRequest.getUsername())
 				.password(userSignupRequest.getPassword())
 				.email(userSignupRequest.getEmail())
