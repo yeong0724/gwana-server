@@ -1,6 +1,8 @@
 package com.gwana.server.controller;
 
 import com.gwana.server.common.utils.ApiResponse;
+import com.gwana.server.dto.mypage.MyinfoUpdateRequest;
+import com.gwana.server.dto.mypage.MyinfoUpdateResponse;
 import com.gwana.server.service.MypageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,5 +19,10 @@ public class MypageController {
     @PostMapping("/upload/profile-image")
     public ApiResponse<String> createPaymentSession(@RequestParam("profileImage") MultipartFile multipartFile) {
         return ApiResponse.ok(mypageService.uploadProfileImage(multipartFile));
+    }
+
+    @PostMapping("/update/myinfo")
+    public ApiResponse<MyinfoUpdateResponse> updateMyinfo(@RequestBody MyinfoUpdateRequest myinfoUpdateRequest) {
+        return ApiResponse.ok(mypageService.updateMyinfo(myinfoUpdateRequest));
     }
 }

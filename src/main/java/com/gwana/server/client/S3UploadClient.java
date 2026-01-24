@@ -48,7 +48,7 @@ public class S3UploadClient {
 
             s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
 
-            return fileName;
+            return "/" + fileName;
         } catch (IOException e) {
             log.error("파일 읽기 실패: {}", e.getMessage());
             throw new CustomException(FILE_UPLOAD_FAILED.getCode(), FILE_UPLOAD_FAILED.getMessage());

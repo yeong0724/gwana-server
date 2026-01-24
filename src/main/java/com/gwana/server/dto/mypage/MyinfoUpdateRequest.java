@@ -1,40 +1,20 @@
-package com.gwana.server.dto.user;
+package com.gwana.server.dto.mypage;
 
-import com.gwana.server.common.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SocialUser {
+@Builder
+public class MyinfoUpdateRequest {
     private String userId;
-
-    // Toss Payments 에서 고객을 식별하기 위한 Key
-    private String customerKey;
-
-    private String username;
-
-    private String password;
-
     private String email;
-
     private String phone;
-
     private String profileImage;
-
     private String zonecode;
-
     private String roadAddress;
-
     private String detailAddress;
-
-    private Role role;
-
-    private String socialAccountId;
-
-    private String provider;
 }
