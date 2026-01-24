@@ -1,6 +1,5 @@
 package com.gwana.server.controller;
 
-import com.gwana.server.common.security.JwtTokenProvider;
 import com.gwana.server.common.utils.ApiResponse;
 import com.gwana.server.common.utils.TokenCookieManager;
 import com.gwana.server.dto.socialAccount.SocialAccountRequest;
@@ -89,12 +88,16 @@ public class UserController {
 
 		return ApiResponse.ok(LoginResponse.builder()
 				.accessToken(newToken.getAccessToken())
-				.loginType(socialUser.getProvider())
-				.userId(userId)
+				.provider(socialUser.getProvider())
 				.customerKey(socialUser.getCustomerKey())
 				.username(socialUser.getUsername())
 				.email(socialUser.getEmail())
 				.phone(socialUser.getPhone())
+				.profileImage(socialUser.getProfileImage())
+				.zonecode(socialUser.getZonecode())
+				.roadAddress(socialUser.getRoadAddress())
+				.detailAddress(socialUser.getDetailAddress())
+				.role(socialUser.getRole())
 				.build());
 	}
 
@@ -124,25 +127,28 @@ public class UserController {
 
 		SocialAccountRequest socialAccountRequest = SocialAccountRequest.builder()
 				.socialAccountId(TSID.Factory.getTsid().toString())
-				.userId(userDto.getUserId())
+				.userId(userId)
 				.providerId(providerId)
 				.provider(provider)
 				.authAccessToken(accessTokenFromKakao)
 				.build();
 
 		userService.createKakaoIfNoAccountInfo(socialAccountRequest);
-
 		TokenResponse tokenResponse = tokenService.insertToken(userDto.getUserId(), accessTokenFromKakao);
 		tokenCookieManager.setRefreshTokenCookie(httpServletResponse, tokenResponse.getRefreshToken());
 
 		return ApiResponse.ok(LoginResponse.builder()
 				.accessToken(tokenResponse.getAccessToken())
-				.loginType(provider)
-				.userId(userId)
+				.provider(provider)
 				.customerKey(customerKey)
 				.username(username)
 				.email(email)
 				.phone(phone)
+				.profileImage(userDto.getProfileImage())
+				.zonecode(userDto.getZonecode())
+				.roadAddress(userDto.getRoadAddress())
+				.detailAddress(userDto.getDetailAddress())
+				.role(userDto.getRole())
 				.build());
 	}
 

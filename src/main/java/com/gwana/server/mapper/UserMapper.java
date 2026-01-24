@@ -19,6 +19,4 @@ public interface UserMapper {
 	Optional<SocialAccountResponse> findSocialAccountByProviderId(Long providerId, String provider);
 
 	int createSocialAccount(SocialAccountRequest socialAccountRequest);
-
-	String selectKakaoProviderId(String userId);
 }

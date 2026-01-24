@@ -23,6 +23,14 @@ public class SocialUser {
 
     private String phone;
 
+    private String profileImage;
+
+    private String zonecode;
+
+    private String roadAddress;
+
+    private String detailAddress;
+
     private Role role;
 
     private String socialAccountId;

@@ -23,6 +23,10 @@
                u.email,
                u.phone,
                u.role,
+               u.profile_image,
+               u.zonecode,
+               u.road_address,
+               u.detail_address,
                sa.social_account_id,
                sa.provider
         FROM users u LEFT JOIN social_account sa ON sa.user_id = u.user_id
@@ -36,6 +40,10 @@
                password,
                phone,
                role,
+               profile_image,
+               zonecode,
+               road_address,
+               detail_address,
                created_at,
                created_by,
                modified_at,

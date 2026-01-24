@@ -65,7 +65,6 @@ public class UserService {
 
 		if (socialAccount.isEmpty()) {
 			int result = userMapper.createSocialAccount(socialAccountRequest);
-
 			if (result <= 0) throw new UserException.UserCreateException();
 		}
 	}
