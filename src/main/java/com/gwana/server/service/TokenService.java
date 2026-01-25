@@ -6,6 +6,7 @@ import com.gwana.server.common.exception.TokenException;
 import com.gwana.server.dto.token.Token;
 import com.gwana.server.dto.token.TokenResponse;
 import com.gwana.server.dto.user.SocialUser;
+import com.gwana.server.dto.user.UserDto;
 import com.gwana.server.dto.user.UserFromKakao;
 import com.gwana.server.mapper.TokenMapper;
 
@@ -108,15 +109,25 @@ public class TokenService {
 
     @Transactional
     public TokenResponse refreshToken(String accessToken, String refreshTokenFromCookie) {
+        log.info("=== refreshToken 시작 ===");
+        log.info("accessToken: {}", accessToken);
+        log.info("refreshTokenFromCookie: {}", refreshTokenFromCookie);
+
         Token token = this.getTokenByAccessToken(accessToken);
+        log.info("DB 에서 조회한 refreshToken: {}", token.getRefreshToken());
 
         if (!token.getRefreshToken().equals(refreshTokenFromCookie)) {
+            log.error("refreshToken 불일치! DB: {} / Cookie: {}",
+                    token.getRefreshToken(), refreshTokenFromCookie);
             throw new TokenException.TokenInvalidException();
         }
+        log.info("refreshToken 일치 확인 완료");
 
         if (!validateToken(refreshTokenFromCookie)) {
+            log.error("refreshToken 유효성 검증 실패");
             throw new TokenException.TokenInvalidException();
         }
+        log.info("refreshToken 유효성 검증 완료");
 
         return reissueAccessToken(refreshTokenFromCookie, token.getAuthAccessToken());
     }

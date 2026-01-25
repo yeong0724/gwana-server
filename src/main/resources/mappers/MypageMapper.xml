@@ -54,13 +54,13 @@
             AND product_id = #{productId}
         </if>
 
-        <if test="startDate != null and startDate != ''">
+        <if test="startDate != null">
             <![CDATA[
                 AND i.created_at >= #{startDate}
             ]]>
         </if>
 
-        <if test="endDate != null and endDate != ''">
+        <if test="endDate != null">
             <![CDATA[
                 /* 종료일 당일의 전체 데이터를 포함하기 위해 1일을 더한 미만 조건 사용 */
                 AND i.created_at < DATE_ADD(#{endDate}, INTERVAL 1 DAY)
