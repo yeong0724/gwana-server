@@ -1,15 +1,15 @@
 package com.gwana.server.dto.mypage;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.gwana.server.dto.BaseDto;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Data
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class MyinfoUpdateRequest {
+@EqualsAndHashCode(callSuper = true)
+public class MyinfoUpdateRequest extends BaseDto {
     private String userId;
     private String email;
     private String phone;

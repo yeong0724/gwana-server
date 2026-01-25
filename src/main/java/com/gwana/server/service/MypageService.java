@@ -1,10 +1,11 @@
 package com.gwana.server.service;
 
 import com.gwana.server.client.S3UploadClient;
+import com.gwana.server.common.enums.ErrorCode;
+import com.gwana.server.common.exception.CommonException;
 import com.gwana.server.common.security.JwtTokenProvider;
 import com.gwana.server.common.utils.Validate;
-import com.gwana.server.dto.mypage.MyinfoUpdateRequest;
-import com.gwana.server.dto.mypage.MyinfoUpdateResponse;
+import com.gwana.server.dto.mypage.*;
 import com.gwana.server.dto.user.AuthUser;
 import com.gwana.server.dto.user.UserDto;
 import com.gwana.server.mapper.MypageMapper;
@@ -12,7 +13,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -24,12 +30,26 @@ public class MypageService {
     private final MypageMapper mypageMapper;
     private final UserService userService;
 
-    public String uploadProfileImage(MultipartFile multipartFile) {
-        long maxFileSize = 1024 * 1024;
+    public String uploadProfileImage(MultipartFile multipartFile, String prevProfileImage) {
+        long maxFileSize = 2 * 1024 * 1024;
         Validate.validateFile(multipartFile, maxFileSize);
 
-        String folderName = "profile";
+        if (StringUtils.hasText(prevProfileImage)) {
+            try {
+                s3UploadClient.deleteImage(prevProfileImage);
+            } catch (Exception e) {
+                log.warn("기존 프로필 이미지 삭제 실패: {}", prevProfileImage);
+            }
+        }
+
+        String folderName = "images/profile";
         return s3UploadClient.uploadImage(multipartFile, folderName);
+    }
+
+    public String uploadTempImage(MultipartFile multipartFile, String folderPath) {
+        long maxFileSize = 5 * 1024 * 1024;
+        Validate.validateFile(multipartFile, maxFileSize);
+        return s3UploadClient.uploadImage(multipartFile, folderPath);
     }
 
     public MyinfoUpdateResponse updateMyinfo(MyinfoUpdateRequest myinfoUpdateRequest) {
@@ -50,5 +70,37 @@ public class MypageService {
                 .roadAddress(user.getRoadAddress())
                 .detailAddress(user.getDetailAddress())
                 .build();
+    }
+
+    public void createInquiry(InquiryCreateRequest inquiryCreateRequest) {
+        AuthUser authUser = jwtTokenProvider.getUserInfo();
+        String userId = authUser.getUserId();
+        inquiryCreateRequest.setUserId(userId);
+
+        String content = inquiryCreateRequest.getContent();
+        Pattern pattern = Pattern.compile("<img[^>]+src=\"([^\"]*temp/inquiry/[^\"]+)\"");
+        Matcher matcher = pattern.matcher(content);
+
+        while (matcher.find()) {
+            String fullUrl = matcher.group(1);
+
+            String tempKey = fullUrl.substring(fullUrl.indexOf("temp/inquiry/"));
+            String newKey = s3UploadClient.moveImage(tempKey, "images/inquiry");
+            content = content.replace(tempKey, newKey);
+        }
+
+        inquiryCreateRequest.setContent(content);
+
+        int count = mypageMapper.createInquiry(inquiryCreateRequest);
+        if (count <= 0) {
+            throw new CommonException(ErrorCode.DEFAULT_ERROR);
+        }
+    }
+
+    public List<InquiryResponse> searchInquiryList(InquiryListSearchRequest inquiryListSearchRequest) {
+        AuthUser authUser = jwtTokenProvider.getUserInfo();
+        inquiryListSearchRequest.setUserId(authUser.getUserId());
+
+        return mypageMapper.selectInquiryList(inquiryListSearchRequest);
     }
 }

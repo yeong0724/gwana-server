@@ -1,8 +1,8 @@
 package com.gwana.server.common.utils;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,12 +13,18 @@ public class TokenCookieManager {
     @Value("${app.cookie.max-age}")
     private int cookieMaxAge;
 
+    @Value("${app.cookie.same-site}")
+    private String cookieSameSite;
+
     public void setRefreshTokenCookie(HttpServletResponse httpServletResponse, String refreshToken) {
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(cookieSecure); // HTTPS 환경에서만 true
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(cookieMaxAge); // 하루
-        httpServletResponse.addCookie(refreshTokenCookie);
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(cookieMaxAge)
+                .sameSite(cookieSameSite)
+                .build();
+
+        httpServletResponse.addHeader("Set-Cookie", cookie.toString());
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -48,7 +49,7 @@ public class S3UploadClient {
 
             s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
 
-            return "/" + fileName;
+            return fileName;
         } catch (IOException e) {
             log.error("파일 읽기 실패: {}", e.getMessage());
             throw new CustomException(FILE_UPLOAD_FAILED.getCode(), FILE_UPLOAD_FAILED.getMessage());
@@ -71,5 +72,29 @@ public class S3UploadClient {
                 .build();
 
         s3Client.deleteObject(request);
+    }
+
+    /**
+     * 이미지 복사 이동
+     */
+    public String moveImage(String sourceKey, String destFolder) {
+        // 파일명 추출
+        String fileName = sourceKey.substring(sourceKey.lastIndexOf("/") + 1);
+        String destKey = destFolder + "/" + fileName;
+
+        // 복사
+        CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+                .sourceBucket(bucket)
+                .sourceKey(sourceKey)
+                .destinationBucket(bucket)
+                .destinationKey(destKey)
+                .build();
+
+        s3Client.copyObject(copyRequest);
+
+        // 원본 삭제
+        // deleteImage(sourceKey);
+
+        return destKey;
     }
 }

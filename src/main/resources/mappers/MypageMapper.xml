@@ -9,7 +9,64 @@
             <if test="zonecode != null">zonecode = #{zonecode},</if>
             <if test="roadAddress != null">road_address = #{roadAddress},</if>
             <if test="detailAddress != null">detail_address = #{detailAddress},</if>
+            <if test="detailAddress != null">modified_at = #{modifiedAt},</if>
+            <if test="detailAddress != null">modified_by = #{modifiedBy},</if>
         </set>
         WHERE user_id = #{userId}
     </update>
+
+    <insert id="createInquiry" parameterType="com.gwana.server.dto.mypage.InquiryCreateRequest">
+        INSERT INTO inquiry (
+            user_id,
+            title,
+            content,
+            is_secret,
+            <if test="productId != null and productId != ''">
+                product_id,
+            </if>
+            created_at,
+            created_by
+        ) VALUES (
+            #{userId},
+            #{title},
+            #{content},
+            #{isSecret},
+            <if test="productId != null and productId != ''">
+                #{productId},
+            </if>
+            #{createdAt},
+            #{createdBy}
+        )
+    </insert>
+
+    <select id="selectInquiryList" parameterType="map" resultType="com.gwana.server.dto.mypage.InquiryResponse">
+        SELECT i.product_id,
+               i.title,
+               i.content,
+               i.is_secret,
+               i.is_answered,
+               i.created_at,
+               i.created_by,
+               u.username
+        FROM inquiry i LEFT JOIN users u ON u.user_id = i.user_id
+        WHERE i.user_id = #{userId}
+        <if test="productId != null and productId != ''">
+            AND product_id = #{productId}
+        </if>
+
+        <if test="startDate != null and startDate != ''">
+            <![CDATA[
+                AND i.created_at >= #{startDate}
+            ]]>
+        </if>
+
+        <if test="endDate != null and endDate != ''">
+            <![CDATA[
+                /* 종료일 당일의 전체 데이터를 포함하기 위해 1일을 더한 미만 조건 사용 */
+                AND i.created_at < DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+            ]]>
+        </if>
+
+        ORDER BY created_at DESC
+    </select>
 </mapper>

@@ -6,7 +6,6 @@ import com.gwana.server.common.exception.TokenException;
 import com.gwana.server.dto.token.Token;
 import com.gwana.server.dto.token.TokenResponse;
 import com.gwana.server.dto.user.SocialUser;
-import com.gwana.server.dto.user.UserDto;
 import com.gwana.server.dto.user.UserFromKakao;
 import com.gwana.server.mapper.TokenMapper;
 
@@ -16,6 +15,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class TokenService {
     @Value("${jwt.secret}")

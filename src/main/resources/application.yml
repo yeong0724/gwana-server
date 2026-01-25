@@ -3,6 +3,7 @@ app:
   cookie:
     secure: true
     max-age: 86400
+    same-site: None
   kakao:
     logout-uri: https://kauth.kakao.com/oauth/logout
     # ip check
@@ -10,6 +11,10 @@ app:
     logout-token-uri: https://kapi.kakao.com/v1/user/logout
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
   devtools:
     restart:
       enabled: false
