@@ -48,4 +48,9 @@ public class MypageController {
     public ApiResponse<List<InquiryResponse>> searchInquiryList(@RequestBody InquiryListSearchRequest inquiryListSearchRequest) {
         return ApiResponse.ok(mypageService.searchInquiryList(inquiryListSearchRequest));
     }
+
+    @PostMapping("/search/inquiry")
+    public ApiResponse<InquiryResponse> searchInquiry(@RequestBody InquirySearchRequest inquirySearchRequest) {
+        return ApiResponse.ok(mypageService.searchInquiry(inquirySearchRequest));
+    }
 }

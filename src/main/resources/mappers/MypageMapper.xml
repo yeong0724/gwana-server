@@ -17,56 +17,103 @@
 
     <insert id="createInquiry" parameterType="com.gwana.server.dto.mypage.InquiryCreateRequest">
         INSERT INTO inquiry (
-            user_id,
             title,
             content,
             is_secret,
             <if test="productId != null and productId != ''">
                 product_id,
             </if>
+            <if test="upperInquiryId != null and upperInquiryId != ''">
+                upper_inquiry_id,
+            </if>
             created_at,
             created_by
         ) VALUES (
-            #{userId},
             #{title},
             #{content},
             #{isSecret},
             <if test="productId != null and productId != ''">
                 #{productId},
             </if>
+            <if test="upperInquiryId != null and upperInquiryId != ''">
+                #{upperInquiryId},
+            </if>
             #{createdAt},
             #{createdBy}
         )
     </insert>
 
-    <select id="selectInquiryList" parameterType="map" resultType="com.gwana.server.dto.mypage.InquiryResponse">
-        SELECT i.product_id,
+    <select id="selectInquiryList" resultType="com.gwana.server.dto.mypage.InquiryResponse">
+        SELECT i.inquiry_id,
+               i.product_id,
                i.title,
                i.content,
                i.is_secret,
                i.is_answered,
                i.created_at,
-               i.created_by,
                u.username
-        FROM inquiry i LEFT JOIN users u ON u.user_id = i.user_id
-        WHERE i.user_id = #{userId}
+        FROM inquiry i LEFT JOIN users u ON u.user_id = i.created_by
+        WHERE i.created_by = #{userId}
         <if test="productId != null and productId != ''">
             AND product_id = #{productId}
         </if>
-
         <if test="startDate != null">
             <![CDATA[
                 AND i.created_at >= #{startDate}
             ]]>
         </if>
-
         <if test="endDate != null">
             <![CDATA[
                 /* 종료일 당일의 전체 데이터를 포함하기 위해 1일을 더한 미만 조건 사용 */
                 AND i.created_at < DATE_ADD(#{endDate}, INTERVAL 1 DAY)
             ]]>
         </if>
-
+        AND i.upper_inquiry_id is null
         ORDER BY created_at DESC
     </select>
+
+    <resultMap id="InquiryWithAnswerMap" type="com.gwana.server.dto.mypage.InquiryResponse">
+        <id property="inquiryId" column="inquiry_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="isSecret" column="is_secret"/>
+        <result property="isAnswered" column="is_answered"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="username" column="username"/>
+        <result property="productName" column="product_name"/>
+
+        <association property="answer" javaType="com.gwana.server.dto.mypage.InquiryAnswerResponse">
+            <id property="title" column="answer_title"/>
+            <result property="content" column="answer_content"/>
+            <result property="createdAt" column="answer_created_at"/>
+        </association>
+    </resultMap>
+
+    <select id="selectInquiry" resultMap="InquiryWithAnswerMap">
+        SELECT i.inquiry_id,
+               i.title,
+               i.content,
+               i.is_secret,
+               i.is_answered,
+               i.created_at,
+               i.created_by,
+               u.username,
+               p.product_name,
+               a.title AS answer_title,
+               a.content AS answer_content,
+               a.created_at AS answer_created_at
+        FROM inquiry i
+            LEFT JOIN users u ON u.user_id = i.created_by
+            LEFT JOIN product p ON p.product_id = i.product_id
+            LEFT JOIN inquiry a ON a.upper_inquiry_id = i.inquiry_id
+        WHERE i.inquiry_id = #{inquiryId}
+
+    </select>
+
+    <update id="updateIsAnswered" parameterType="string">
+        UPDATE inquiry
+        SET is_answered = 'Y'
+        WHERE inquiry_id = #{inquiryId}
+    </update>
 </mapper>

@@ -12,28 +12,11 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class InquiryResponse {
-    // 문의글 ID
-    private Long inquiryId;
-
-    // 문의대상 상풍 정보 (단순 문의글인 경우 nullable)
-    private String productId;
-    private String productName;
-
+public class InquiryAnswerResponse {
     private String title;
-    private String content;
-    private String isSecret;
-    private String isAnswered;
 
-    // 작성일
+    private String content;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;
-
-    // 작성자 Id
-    private String createdBy;
-
-    // 작성자 이름
-    private String username;
-
-    private InquiryAnswerResponse answer;
 }

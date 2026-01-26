@@ -23,7 +23,7 @@ spring:
 
   datasource:
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: jdbc:log4jdbc:mysql://mysql-gwana-database.crwassomidre.ap-northeast-2.rds.amazonaws.com:3306/gwana-db?serverTimezone=UTC
+    url: jdbc:log4jdbc:mysql://mysql-gwana-database.crwassomidre.ap-northeast-2.rds.amazonaws.com:3306/gwana-db?serverTimezone=Asia/Seoul
     username: myuser
     password: "${DB_PASSWORD}"
 

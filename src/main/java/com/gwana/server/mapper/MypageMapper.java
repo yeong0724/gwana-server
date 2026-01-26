@@ -1,9 +1,6 @@
 package com.gwana.server.mapper;
 
-import com.gwana.server.dto.mypage.InquiryCreateRequest;
-import com.gwana.server.dto.mypage.InquiryListSearchRequest;
-import com.gwana.server.dto.mypage.InquiryResponse;
-import com.gwana.server.dto.mypage.MyinfoUpdateRequest;
+import com.gwana.server.dto.mypage.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -15,4 +12,8 @@ public interface MypageMapper {
     int createInquiry(InquiryCreateRequest inquiryCreateRequest);
 
     List<InquiryResponse> selectInquiryList(InquiryListSearchRequest inquiryListSearchRequest);
+
+    InquiryResponse selectInquiry(InquirySearchRequest inquirySearchRequest);
+
+    void updateIsAnswered(String inquiryId);
 }

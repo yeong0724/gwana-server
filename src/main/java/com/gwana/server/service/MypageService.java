@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -73,10 +74,6 @@ public class MypageService {
     }
 
     public void createInquiry(InquiryCreateRequest inquiryCreateRequest) {
-        AuthUser authUser = jwtTokenProvider.getUserInfo();
-        String userId = authUser.getUserId();
-        inquiryCreateRequest.setUserId(userId);
-
         String content = inquiryCreateRequest.getContent();
         Pattern pattern = Pattern.compile("<img[^>]+src=\"([^\"]*temp/inquiry/[^\"]+)\"");
         Matcher matcher = pattern.matcher(content);
@@ -89,11 +86,17 @@ public class MypageService {
             content = content.replace(tempKey, newKey);
         }
 
-        inquiryCreateRequest.setContent(content);
+        String cleanHtml = Jsoup.clean(content, Safelist.basic());
+        inquiryCreateRequest.setContent(cleanHtml);
 
         int count = mypageMapper.createInquiry(inquiryCreateRequest);
         if (count <= 0) {
             throw new CommonException(ErrorCode.DEFAULT_ERROR);
+        }
+
+        String upperInquiryId = inquiryCreateRequest.getUpperInquiryId();
+        if (StringUtils.hasText(upperInquiryId)) {
+            mypageMapper.updateIsAnswered(upperInquiryId);
         }
     }
 
@@ -102,5 +105,9 @@ public class MypageService {
         inquiryListSearchRequest.setUserId(authUser.getUserId());
 
         return mypageMapper.selectInquiryList(inquiryListSearchRequest);
+    }
+
+    public InquiryResponse searchInquiry(InquirySearchRequest inquirySearchRequest) {
+        return mypageMapper.selectInquiry(inquirySearchRequest);
     }
 }

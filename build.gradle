@@ -40,6 +40,9 @@ dependencies {
     // 파일 타입 검증
     implementation 'org.apache.tika:tika-core:3.2.2'
 
+    // HTML 파싱/클리닝
+    implementation 'org.jsoup:jsoup:1.17.2'
+
     implementation 'io.hypersistence:hypersistence-tsid:2.1.1'
     implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
     implementation 'org.apache.commons:commons-lang3:3.18.0'

@@ -6,7 +6,6 @@ import com.gwana.server.common.exception.TokenException;
 import com.gwana.server.dto.token.Token;
 import com.gwana.server.dto.token.TokenResponse;
 import com.gwana.server.dto.user.SocialUser;
-import com.gwana.server.dto.user.UserDto;
 import com.gwana.server.dto.user.UserFromKakao;
 import com.gwana.server.mapper.TokenMapper;
 

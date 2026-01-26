@@ -13,9 +13,9 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class InquiryCreateRequest extends BaseDto {
-    private String userId;
     private String title;
     private String content;
     private String isSecret;
     private String productId;
+    private String upperInquiryId;
 }

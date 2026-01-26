@@ -1,7 +1,6 @@
 package com.gwana.server.client;
 
 import com.gwana.server.common.exception.CustomException;
-import com.gwana.server.common.utils.Validate;
 import io.hypersistence.tsid.TSID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
