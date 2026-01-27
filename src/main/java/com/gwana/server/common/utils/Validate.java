@@ -3,6 +3,10 @@ package com.gwana.server.common.utils;
 import static com.gwana.server.common.enums.ErrorCode.*;
 import com.gwana.server.common.exception.CustomException;
 import org.apache.tika.Tika;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,5 +42,27 @@ public class Validate {
         } catch (IOException e) {
             throw new CustomException(FILE_VALIDATION_ERROR.getCode(), FILE_VALIDATION_ERROR.getMessage());
         }
+    }
+
+    public static String cleanHtml(String content) {
+        Document doc = Jsoup.parse(content);
+
+        for (Element img : doc.select("img[containerstyle]")) {
+            String containerStyle = img.attr("containerstyle");
+            if (containerStyle.contains("margin: 0px auto")) {
+                String currentStyle = img.attr("style");
+                img.attr("style", currentStyle + " margin-left: auto; margin-right: auto;");
+            }
+            img.removeAttr("containerstyle");
+            img.removeAttr("wrapperstyle");
+        }
+
+        Safelist safelist = Safelist.basic()
+                .addTags("img", "span")
+                .addAttributes("img", "src", "alt", "title", "width", "height", "style")
+                .addAttributes("span", "style")  // 폰트 색상, 크기용
+                .addProtocols("img", "src", "https");
+
+        return Jsoup.clean(doc.body().html(), safelist);
     }
 }

@@ -43,8 +43,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	 */
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) {
-		return request.getMethod().equals("OPTIONS");
-    }
+		String path = request.getRequestURI();
+		return request.getMethod().equals("OPTIONS")
+				|| path.startsWith("/user/")
+				|| path.startsWith("/auth/")
+				|| path.startsWith("/product/");
+	}
 
 	/**
 	 * 1. Request 에서 jwt 출출후 파싱

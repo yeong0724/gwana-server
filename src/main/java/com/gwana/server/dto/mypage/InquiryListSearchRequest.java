@@ -16,4 +16,6 @@ public class InquiryListSearchRequest {
     private String productId;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String isAnswered;
+    private String role;
 }

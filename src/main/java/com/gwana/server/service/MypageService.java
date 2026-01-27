@@ -11,12 +11,16 @@ import com.gwana.server.dto.user.UserDto;
 import com.gwana.server.mapper.MypageMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -86,7 +90,8 @@ public class MypageService {
             content = content.replace(tempKey, newKey);
         }
 
-        String cleanHtml = Jsoup.clean(content, Safelist.basic());
+        String cleanHtml = Validate.cleanHtml(content);
+
         inquiryCreateRequest.setContent(cleanHtml);
 
         int count = mypageMapper.createInquiry(inquiryCreateRequest);
@@ -102,7 +107,10 @@ public class MypageService {
 
     public List<InquiryResponse> searchInquiryList(InquiryListSearchRequest inquiryListSearchRequest) {
         AuthUser authUser = jwtTokenProvider.getUserInfo();
-        inquiryListSearchRequest.setUserId(authUser.getUserId());
+        String userId = authUser.getUserId();
+        String role = jwtTokenProvider.getRole();
+        inquiryListSearchRequest.setUserId(userId);
+        inquiryListSearchRequest.setRole(role);
 
         return mypageMapper.selectInquiryList(inquiryListSearchRequest);
     }

@@ -34,6 +34,8 @@ public class InquiryResponse {
 
     // 작성자 이름
     private String username;
+    // 작성자 연락처
+    private String phone;
 
     private InquiryAnswerResponse answer;
 }

@@ -63,7 +63,7 @@ jwt:
   secret: ${JWT_SECRET}
   expire:
     access-token: 30 # 30분
-    refresh-token: 720 # 24시간
+    refresh-token: 1440 # 24시간
 
 toss:
   secret-key: ${TOSS_SECRET_KEY}

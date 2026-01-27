@@ -53,21 +53,29 @@
                i.created_at,
                u.username
         FROM inquiry i LEFT JOIN users u ON u.user_id = i.created_by
-        WHERE i.created_by = #{userId}
-        <if test="productId != null and productId != ''">
-            AND product_id = #{productId}
-        </if>
-        <if test="startDate != null">
-            <![CDATA[
-                AND i.created_at >= #{startDate}
-            ]]>
-        </if>
-        <if test="endDate != null">
-            <![CDATA[
-                /* 종료일 당일의 전체 데이터를 포함하기 위해 1일을 더한 미만 조건 사용 */
-                AND i.created_at < DATE_ADD(#{endDate}, INTERVAL 1 DAY)
-            ]]>
-        </if>
+        <where>
+            <if test="role != 'ADMIN'">
+                i.created_by = #{userId}
+            </if>
+            <if test="productId != null and productId != ''">
+                AND product_id = #{productId}
+            </if>
+            <if test="isAnswered != null and isAnswered != ''">
+                AND is_answered = #{isAnswered}
+            </if>
+            <if test="startDate != null">
+                <![CDATA[
+                    AND i.created_at >= #{startDate}
+                ]]>
+            </if>
+            <if test="endDate != null">
+                <![CDATA[
+                    /* 종료일 당일의 전체 데이터를 포함하기 위해 1일을 더한 미만 조건 사용 */
+                    AND i.created_at < DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+                ]]>
+            </if>
+            AND i.upper_inquiry_id is null
+        </where>
         AND i.upper_inquiry_id is null
         ORDER BY created_at DESC
     </select>
@@ -81,6 +89,7 @@
         <result property="createdAt" column="created_at"/>
         <result property="createdBy" column="created_by"/>
         <result property="username" column="username"/>
+        <result property="phone" column="phone"/>
         <result property="productName" column="product_name"/>
 
         <association property="answer" javaType="com.gwana.server.dto.mypage.InquiryAnswerResponse">
@@ -99,6 +108,7 @@
                i.created_at,
                i.created_by,
                u.username,
+               u.phone,
                p.product_name,
                a.title AS answer_title,
                a.content AS answer_content,
