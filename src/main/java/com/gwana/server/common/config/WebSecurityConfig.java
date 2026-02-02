@@ -63,7 +63,7 @@ public class WebSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // jwt 기반 인증이므로 Session 사용 안함
                 )
                 .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/", "/auth/**", "/user/**", "/product/**")
+                    .requestMatchers("/", "/auth/**", "/user/**", "/product/**", "/mypage/search/review/list")
                     .permitAll() // root 및 /auth url은 인증 필요없음
                     .requestMatchers("/error")  // 모든 v1 API 경로 허용 (존재하지 않는 것도)
                     .permitAll()

@@ -15,7 +15,7 @@
         WHERE user_id = #{userId}
     </update>
 
-    <insert id="createInquiry" parameterType="com.gwana.server.dto.mypage.InquiryCreateRequest">
+    <insert id="insertInquiry" parameterType="com.gwana.server.dto.mypage.InquiryCreateRequest">
         INSERT INTO inquiry (
             title,
             content,
@@ -43,7 +43,34 @@
         )
     </insert>
 
-    <select id="selectInquiryList" resultType="com.gwana.server.dto.mypage.InquiryResponse">
+    <select id="selectInquiryCount" resultType="long">
+        SELECT COUNT(*)
+        FROM inquiry i
+        <where>
+            <if test="role != 'ADMIN'">
+                i.created_by = #{userId}
+            </if>
+            <if test="productId != null and productId != ''">
+                AND product_id = #{productId}
+            </if>
+            <if test="isAnswered != null and isAnswered != ''">
+                AND is_answered = #{isAnswered}
+            </if>
+            <if test="startDate != null">
+                <![CDATA[
+                    AND i.created_at >= #{startDate}
+                ]]>
+            </if>
+            <if test="endDate != null">
+                <![CDATA[
+                    AND i.created_at < DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+                ]]>
+            </if>
+            AND i.upper_inquiry_id IS NULL
+        </where>
+    </select>
+
+    <select id="selectInquiryList" resultType="com.gwana.server.dto.mypage.Inquiry">
         SELECT i.inquiry_id,
                i.product_id,
                i.title,
@@ -76,11 +103,11 @@
             </if>
             AND i.upper_inquiry_id is null
         </where>
-        AND i.upper_inquiry_id is null
         ORDER BY created_at DESC
+        LIMIT #{size} OFFSET #{offset}
     </select>
 
-    <resultMap id="InquiryWithAnswerMap" type="com.gwana.server.dto.mypage.InquiryResponse">
+    <resultMap id="InquiryWithAnswerMap" type="com.gwana.server.dto.mypage.Inquiry">
         <id property="inquiryId" column="inquiry_id"/>
         <result property="title" column="title"/>
         <result property="content" column="content"/>
@@ -126,4 +153,51 @@
         SET is_answered = 'Y'
         WHERE inquiry_id = #{inquiryId}
     </update>
+
+    <insert id="insertReview" parameterType="com.gwana.server.dto.mypage.ReviewCreateRequest">
+        INSERT INTO review (
+            product_id,
+            content,
+            review_images,
+            rating,
+            created_at,
+            created_by
+        ) VALUES (
+            #{productId},
+            #{content},
+            #{reviewImages},
+            #{rating},
+            #{createdAt},
+            #{createdBy}
+        )
+    </insert>
+    <select id="selectReviewCount" resultType="com.gwana.server.dto.mypage.ReviewCountResponse">
+        SELECT COUNT(*) as totalCount,
+               COALESCE(AVG(rating), 0) as averageRating
+        FROM review
+        WHERE product_id = #{productId}
+    </select>
+    <select id="selectReviewList" resultType="com.gwana.server.dto.mypage.Review">
+        SELECT review_id,
+               product_id,
+               content,
+               review_images,
+               rating,
+               created_by,
+               created_at
+        FROM review
+        WHERE product_id = #{productId}
+        <if test="photoOnly">
+            AND review_images IS NOT NULL
+            AND JSON_LENGTH(review_images) > 0
+        </if>
+        <choose>
+            <when test="sortBy == 'recommended'">
+                ORDER BY rating DESC, created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY created_at DESC
+            </otherwise>
+        </choose>
+    </select>
 </mapper>

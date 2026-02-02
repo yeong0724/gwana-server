@@ -6,24 +6,28 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class InquiryResponse {
-    // 문의글 ID
-    private Long inquiryId;
+public class Review {
+    // 리뷰 ID
+    private Long reviewId;
 
-    // 문의대상 상풍 정보 (단순 문의글인 경우 nullable)
+    // 리뷰 대상 상품 ID
     private String productId;
-    private String productName;
 
-    private String title;
+    // 리뷰 내용
     private String content;
-    private String isSecret;
-    private String isAnswered;
+
+    // 리뷰 사진
+    private String[] reviewImages;
+
+    // 리뷰 별점
+    private BigDecimal rating;
 
     // 작성일
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -31,11 +35,4 @@ public class InquiryResponse {
 
     // 작성자 Id
     private String createdBy;
-
-    // 작성자 이름
-    private String username;
-    // 작성자 연락처
-    private String phone;
-
-    private InquiryAnswerResponse answer;
 }

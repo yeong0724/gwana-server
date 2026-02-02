@@ -9,11 +9,19 @@ import java.util.List;
 public interface MypageMapper {
     void updateMyinfo(MyinfoUpdateRequest myinfoUpdateRequest);
 
-    int createInquiry(InquiryCreateRequest inquiryCreateRequest);
+    int insertInquiry(InquiryCreateRequest inquiryCreateRequest);
 
-    List<InquiryResponse> selectInquiryList(InquiryListSearchRequest inquiryListSearchRequest);
+    long selectInquiryCount(InquiryListSearchRequest inquiryListSearchRequest);
 
-    InquiryResponse selectInquiry(InquirySearchRequest inquirySearchRequest);
+    List<Inquiry> selectInquiryList(InquiryListSearchRequest inquiryListSearchRequest);
+
+    Inquiry selectInquiry(InquirySearchRequest inquirySearchRequest);
 
     void updateIsAnswered(String inquiryId);
+
+    int insertReview(ReviewCreateRequest reviewCreateRequest);
+
+    ReviewCountResponse selectReviewCount(String productId);
+
+    List<Review> selectReviewList(ReviewListSearchRequest reviewListSearchRequest);
 }

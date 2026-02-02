@@ -47,7 +47,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		return request.getMethod().equals("OPTIONS")
 				|| path.startsWith("/user/")
 				|| path.startsWith("/auth/")
-				|| path.startsWith("/product/");
+				|| path.startsWith("/product/")
+				|| path.equals("/mypage/search/review/list");
 	}
 
 	/**

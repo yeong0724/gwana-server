@@ -1,29 +1,28 @@
 package com.gwana.server.service;
 
 import com.gwana.server.client.S3UploadClient;
-import com.gwana.server.common.enums.ErrorCode;
 import com.gwana.server.common.exception.CommonException;
+import com.gwana.server.common.exception.CustomException;
 import com.gwana.server.common.security.JwtTokenProvider;
 import com.gwana.server.common.utils.Validate;
+import com.gwana.server.dto.InfiniteResponse;
 import com.gwana.server.dto.mypage.*;
 import com.gwana.server.dto.user.AuthUser;
 import com.gwana.server.dto.user.UserDto;
 import com.gwana.server.mapper.MypageMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 
-import java.util.Collections;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.gwana.server.common.enums.ErrorCode.*;
 
 @Service
 @Slf4j
@@ -55,6 +54,22 @@ public class MypageService {
         long maxFileSize = 5 * 1024 * 1024;
         Validate.validateFile(multipartFile, maxFileSize);
         return s3UploadClient.uploadImage(multipartFile, folderPath);
+    }
+
+    public List<String> uploadImages(List<MultipartFile> multipartFiles, String folderPath, long maxFileSize, int maxFileCount) {
+        long MAX_FILE_SIZE = maxFileSize * 1024 * 1024;
+
+        for (MultipartFile multipartFile : multipartFiles) {
+            Validate.validateFile(multipartFile, MAX_FILE_SIZE);
+        }
+
+        if (multipartFiles.size() > maxFileCount) {
+            throw new CustomException(FILE_COUNT_EXCEEDED.getCode(), "이미지는 최대 " + maxFileCount + "개까지 업로드 가능합니다.");
+        }
+
+        return multipartFiles.parallelStream()
+                .map(file -> s3UploadClient.uploadImage(file, folderPath))
+                .toList();
     }
 
     public MyinfoUpdateResponse updateMyinfo(MyinfoUpdateRequest myinfoUpdateRequest) {
@@ -94,9 +109,9 @@ public class MypageService {
 
         inquiryCreateRequest.setContent(cleanHtml);
 
-        int count = mypageMapper.createInquiry(inquiryCreateRequest);
+        int count = mypageMapper.insertInquiry(inquiryCreateRequest);
         if (count <= 0) {
-            throw new CommonException(ErrorCode.DEFAULT_ERROR);
+            throw new CommonException(INQUIRY_CREATE_FAILED);
         }
 
         String upperInquiryId = inquiryCreateRequest.getUpperInquiryId();
@@ -105,17 +120,66 @@ public class MypageService {
         }
     }
 
-    public List<InquiryResponse> searchInquiryList(InquiryListSearchRequest inquiryListSearchRequest) {
+    public InfiniteResponse<List<Inquiry>> searchInquiryList(InquiryListSearchRequest inquiryListSearchRequest) {
         AuthUser authUser = jwtTokenProvider.getUserInfo();
         String userId = authUser.getUserId();
         String role = jwtTokenProvider.getRole();
         inquiryListSearchRequest.setUserId(userId);
         inquiryListSearchRequest.setRole(role);
 
-        return mypageMapper.selectInquiryList(inquiryListSearchRequest);
+        int page = inquiryListSearchRequest.getPage();
+        int size = inquiryListSearchRequest.getSize();
+        int offset = page * size;
+        inquiryListSearchRequest.setOffset(offset);
+
+        long totalCount = mypageMapper.selectInquiryCount(inquiryListSearchRequest);
+        boolean hasNext = (long) (page + 1) * size < totalCount;
+        List<Inquiry> list = mypageMapper.selectInquiryList(inquiryListSearchRequest);
+
+        return InfiniteResponse.<List<Inquiry>>builder()
+                .data(list)
+                .page(page)
+                .size(size)
+                .totalCount(totalCount)
+                .hasNext(hasNext)
+                .build();
     }
 
-    public InquiryResponse searchInquiry(InquirySearchRequest inquirySearchRequest) {
+    public Inquiry searchInquiry(InquirySearchRequest inquirySearchRequest) {
         return mypageMapper.selectInquiry(inquirySearchRequest);
     }
+
+    public void createReview(ReviewCreateRequest reviewCreateRequest) {
+        int result = mypageMapper.insertReview(reviewCreateRequest);
+
+        if (result <= 0) {
+            throw new CommonException(REVIEW_CREATE_FAILED);
+        }
+    }
+
+    public InfiniteResponse<List<Review>> searchReviewList(ReviewListSearchRequest reviewListSearchRequest) {
+        int page = reviewListSearchRequest.getPage();
+        int size = reviewListSearchRequest.getSize();
+        int offset = page * size;
+        reviewListSearchRequest.setOffset(offset);
+
+        String productId = reviewListSearchRequest.getProductId();
+        ReviewCountResponse reviewCountResponse = mypageMapper.selectReviewCount(productId);
+
+        long totalCount = reviewCountResponse.getTotalCount();
+        BigDecimal averageRating = reviewCountResponse.getAverageRating();
+
+        boolean hasNext = (long) (page + 1) * size < totalCount;
+        List<Review> list = mypageMapper.selectReviewList(reviewListSearchRequest);
+
+        return InfiniteResponse.<List<Review>>builder()
+                .data(list)
+                .page(page)
+                .size(size)
+                .totalCount(totalCount)
+                .hasNext(hasNext)
+                .averageRating(averageRating)
+                .build();
+    }
+
 }

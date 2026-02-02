@@ -6,8 +6,8 @@
         <result property="productName" column="product_name"/>
         <result property="categoryId" column="category_id"/>
         <result property="categoryName" column="category_name"/>
-        <result property="images" column="images" typeHandler="com.gwana.server.common.utils.StringArrayTypeHandler"/>
-        <result property="infos" column="infos" typeHandler="com.gwana.server.common.utils.StringArrayTypeHandler"/>
+        <result property="images" column="images" />
+        <result property="infos" column="infos" />
         <result property="price" column="price"/>
         <result property="shippingPrice" column="shipping_price"/>
         <result property="optionRequired" column="option_required"/>

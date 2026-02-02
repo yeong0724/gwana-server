@@ -1,6 +1,7 @@
 package com.gwana.server.controller;
 
 import com.gwana.server.common.utils.ApiResponse;
+import com.gwana.server.dto.InfiniteResponse;
 import com.gwana.server.dto.mypage.*;
 import com.gwana.server.service.MypageService;
 import lombok.RequiredArgsConstructor;
@@ -45,12 +46,33 @@ public class MypageController {
     }
 
     @PostMapping("/search/inquiry/list")
-    public ApiResponse<List<InquiryResponse>> searchInquiryList(@RequestBody InquiryListSearchRequest inquiryListSearchRequest) {
+    public ApiResponse<InfiniteResponse<List<Inquiry>>> searchInquiryList(@RequestBody InquiryListSearchRequest inquiryListSearchRequest) {
         return ApiResponse.ok(mypageService.searchInquiryList(inquiryListSearchRequest));
     }
 
     @PostMapping("/search/inquiry")
-    public ApiResponse<InquiryResponse> searchInquiry(@RequestBody InquirySearchRequest inquirySearchRequest) {
+    public ApiResponse<Inquiry> searchInquiry(@RequestBody InquirySearchRequest inquirySearchRequest) {
         return ApiResponse.ok(mypageService.searchInquiry(inquirySearchRequest));
+    }
+
+    @PostMapping("/upload/images")
+    public ApiResponse<List<String>> uploadTempImage(
+            @RequestParam("images") List<MultipartFile> multipartFiles,
+            @RequestParam(value = "folderPath", defaultValue = "") String folderPath,
+            @RequestParam(value = "maxFileSize", required = false, defaultValue = "3") long maxFileSize,
+            @RequestParam(value = "maxFileCount", required = false, defaultValue = "5") int maxFileCount
+    ) {
+        return ApiResponse.ok(mypageService.uploadImages(multipartFiles, folderPath, maxFileSize, maxFileCount));
+    }
+
+    @PostMapping("/create/review")
+    public ApiResponse<Void> createReview(@RequestBody ReviewCreateRequest reviewCreateRequest) {
+        mypageService.createReview(reviewCreateRequest);
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping("/search/review/list")
+    public ApiResponse<InfiniteResponse<List<Review>>> searchReviewList(@RequestBody ReviewListSearchRequest reviewListSearchRequest) {
+        return ApiResponse.ok(mypageService.searchReviewList(reviewListSearchRequest));
     }
 }
