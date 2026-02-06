@@ -3,7 +3,6 @@ package com.gwana.server.common.security;
 
 import com.gwana.server.dto.user.AuthUser;
 import com.gwana.server.dto.user.SocialUser;
-import com.gwana.server.dto.user.UserDto;
 import com.gwana.server.service.TokenService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;

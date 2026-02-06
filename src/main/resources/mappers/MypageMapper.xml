@@ -183,9 +183,10 @@
                content,
                review_images,
                rating,
-               created_by,
-               created_at
-        FROM review
+               r.created_by,
+               r.created_at,
+               u.email
+        FROM review r LEFT JOIN users u ON u.user_id = r.created_by
         WHERE product_id = #{productId}
         <if test="photoOnly">
             AND review_images IS NOT NULL

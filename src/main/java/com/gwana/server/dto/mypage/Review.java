@@ -1,6 +1,7 @@
 package com.gwana.server.dto.mypage;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.gwana.server.common.annotation.EmailMasking;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,4 +36,8 @@ public class Review {
 
     // 작성자 Id
     private String createdBy;
+
+    // 작성자 email
+    @EmailMasking
+    private String email;
 }
