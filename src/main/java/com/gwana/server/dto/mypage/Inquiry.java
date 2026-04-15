@@ -17,7 +17,7 @@ public class Inquiry {
     private Long inquiryId;
 
     // 문의대상 상풍 정보 (단순 문의글인 경우 nullable)
-    private String productId;
+    private Long productId;
     private String productName;
 
     private String title;

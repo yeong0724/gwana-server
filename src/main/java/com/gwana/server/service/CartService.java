@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,88 +20,62 @@ public class CartService {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    public void upsertCart(CartUpdateRequest cartUpdateRequest) {
+    public void upsertCart(UpsertCartRequest upsertCartRequest) {
+        Long productId = upsertCartRequest.getProductId();
         AuthUser authUser = jwtTokenProvider.getUserInfo();
         String userId = authUser.getUserId();
-        cartUpdateRequest.setUserId(userId);
+        upsertCartRequest.setUserId(userId);
 
-        cartMapper.upsertCart(cartUpdateRequest);
+        Long cartId = cartMapper.selectCartByUserAndProduct(productId, userId);
+        if (cartId == null) {
+            cartMapper.insertCart(upsertCartRequest);
+            cartId = upsertCartRequest.getCartId();
+        }
+
+        for (UpsertCartItemRequest upsertCartItemRequest : upsertCartRequest.getCartItems()) {
+            upsertCartItemRequest.setCartId(cartId);
+            cartMapper.upsertCartItem(upsertCartItemRequest);
+        }
     }
 
-    public List<CartResponse> searchCartList() {
+    public List<Cart> searchCartList() {
         AuthUser authUser = jwtTokenProvider.getUserInfo();
         String userId = authUser.getUserId();
 
         List<Cart> cartList = cartMapper.selectCartList(userId);
-        Map<String, List<Cart>> grouped = cartList.stream()
-                .collect(Collectors.groupingBy(Cart::getProductId));
 
-        return grouped.values().stream()
-                .map(group -> {
-                    Cart first = group.get(0);
+        for (Cart cart : cartList) {
+            List<CartItem> cartItemList = cartMapper.selectCartItemList(cart.getCartId());
+            cart.setCartItems(cartItemList);
+        }
 
-                    CartResponse cartResponse = new CartResponse();
-                    cartResponse.setProductId(first.getProductId());
-                    cartResponse.setProductName(first.getProductName());
-                    cartResponse.setCategoryName(first.getCategoryName());
-                    cartResponse.setPrice(first.getPrice());
-                    cartResponse.setShippingPrice(first.getShippingPrice());
-                    cartResponse.setImages(first.getImages());
-                    cartResponse.setOptionRequired(first.isOptionRequired());
-
-
-
-                    // 옵션이 있는 상품
-                    List<CartOption> options = group.stream()
-                            .filter(v -> {
-                                if (v.getOptionId() == null) {
-                                    cartResponse.setCartId(v.getCartId());
-                                    cartResponse.setQuantity(v.getQuantity());
-                                    return false;
-                                }
-                                return true;
-                            })
-                            .map(v -> {
-                                CartOption opt = new CartOption();
-                                opt.setCartId(v.getCartId());
-                                opt.setOptionId(v.getOptionId());
-                                opt.setOptionName(v.getOptionName());
-                                opt.setOptionPrice(v.getOptionPrice());
-                                opt.setQuantity(v.getQuantity());
-                                return opt;
-                            })
-                            .collect(Collectors.toList());
-
-                    cartResponse.setOptions(options);
-
-                    return cartResponse;
-                })
-                .collect(Collectors.toList());
+        return cartList;
     }
 
-    public void updateCartList(List<CartUpdateRequest> cartUpdateRequestList) {
-        for (CartUpdateRequest cartUpdateRequest : cartUpdateRequestList) {
-            this.upsertCart(cartUpdateRequest);
+    public void deleteCartItem(CartItemDeleteRequest cartItemDeleteRequest) {
+        cartMapper.deleteCartItem(cartItemDeleteRequest);
+    }
+
+    public void upsertCartList(List<UpsertCartRequest> upsertCartRequests) {
+        for (UpsertCartRequest upsertCartRequest : upsertCartRequests) {
+            this.upsertCart(upsertCartRequest);
         }
     }
 
     public void deleteCart(CartDeleteRequest cartDeleteRequest) {
         cartMapper.deleteCart(cartDeleteRequest);
+        cartMapper.deleteCartItemByCartId(cartDeleteRequest);
     }
 
-    public void deleteCartList(List<String> productIdList) {
-        AuthUser authUser = jwtTokenProvider.getUserInfo();
-        String userId = authUser.getUserId();
-
-        for (String productId : productIdList) {
+    public void deleteCartList(List<Long> cartIdList) {
+        for (Long cartId : cartIdList) {
             CartDeleteRequest cartDeleteRequest = new CartDeleteRequest();
-            cartDeleteRequest.setProductId(productId);
-            cartDeleteRequest.setUserId(userId);
-            cartMapper.deleteCart(cartDeleteRequest);
+            cartDeleteRequest.setCartId(cartId);
+            this.deleteCart(cartDeleteRequest);
         }
     }
 
-    public void updateCartQuantity(CartUpdateRequest cartUpdateRequest) {
-        cartMapper.updateCartQuantity(cartUpdateRequest);
+    public void updateCartItemQuantity(CartItemUpdateRequest cartItemUpdateRequest) {
+        cartMapper.updateCartItemQuantity(cartItemUpdateRequest);
     }
 }

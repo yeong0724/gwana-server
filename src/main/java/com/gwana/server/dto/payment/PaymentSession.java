@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PaymentSession {
-    private String productId;
+    private Long productId;
     private String productName;
     private String categoryName;
     private int quantity;

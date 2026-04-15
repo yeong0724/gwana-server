@@ -10,7 +10,6 @@
         <result property="infos" column="infos" />
         <result property="price" column="price"/>
         <result property="shippingPrice" column="shipping_price"/>
-        <result property="optionRequired" column="option_required"/>
     </resultMap>
 
     <select id="selectProductList" resultMap="ProductResultMap">
@@ -21,8 +20,7 @@
                images,
                infos,
                price,
-               shipping_price,
-               option_required
+               shipping_price
         FROM product
         <where>
             <if test="categoryId != null and categoryId != ''">
@@ -39,17 +37,18 @@
                images,
                infos,
                price,
-               shipping_price,
-               option_required
+               shipping_price
         FROM product WHERE product_id = #{productId}
     </select>
-
-    <select id="selectProductOption" resultType="com.gwana.server.dto.product.ProductOption">
-        SELECT option_id,
+    <select id="selectProductOptions" resultType="com.gwana.server.dto.product.ProductOption">
+        SELECT product_option_id,
                product_id,
                option_name,
-               option_price
-        FROM product_option WHERE product_id = #{productId}
-        ORDER BY option_id DESC;
+               option_price,
+               is_required,
+               is_quantity_adjustable
+        FROM product_option
+        WHERE (product_id = #{productId} OR product_id IS NULL)
+        ORDER BY option_name DESC
     </select>
 </mapper>

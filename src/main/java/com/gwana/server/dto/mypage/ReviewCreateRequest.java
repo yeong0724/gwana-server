@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class ReviewCreateRequest extends BaseDto {
-    private String productId;
+    private Long productId;
     private String content;
     private String[] reviewImages;
     private BigDecimal rating;

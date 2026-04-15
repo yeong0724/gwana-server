@@ -16,20 +16,26 @@ import java.util.List;
 public class CartController {
     private final CartService cartService;
 
-    @PostMapping("/add")
-    public ApiResponse<Void> addCart(@RequestBody CartUpdateRequest cartUpdateRequest) {
-        cartService.upsertCart(cartUpdateRequest);
-        return ApiResponse.ok(null);
-    }
-
-    @GetMapping("/list")
-    public ApiResponse<List<CartResponse>> searchCartList() {
+    @GetMapping("/list/search")
+    public ApiResponse<List<Cart>> searchCartList() {
         return ApiResponse.ok(cartService.searchCartList());
     }
 
-    @PostMapping("/update")
-    public ApiResponse<Void> updateCart(@RequestBody List<CartUpdateRequest> cartUpdateRequestList) {
-        cartService.updateCartList(cartUpdateRequestList);
+    @PostMapping("/upsert")
+    public ApiResponse<Void> upsertCart(@RequestBody UpsertCartRequest upsertCartRequest) {
+        cartService.upsertCart(upsertCartRequest);
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping("/list/upsert")
+    public ApiResponse<Void> updateCart(@RequestBody List<UpsertCartRequest> upsertCartRequests) {
+        cartService.upsertCartList(upsertCartRequests);
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping("/cart-item/delete")
+    public ApiResponse<Void> deleteCartItem(@RequestBody CartItemDeleteRequest cartItemDeleteRequest) {
+        cartService.deleteCartItem(cartItemDeleteRequest);
         return ApiResponse.ok(null);
     }
 
@@ -39,15 +45,15 @@ public class CartController {
         return ApiResponse.ok(null);
     }
 
-    @PostMapping("/delete/list")
-    public ApiResponse<Void> deleteCartList(@RequestBody List<String> cartIdList) {
+    @PostMapping("/list/delete")
+    public ApiResponse<Void> deleteCartList(@RequestBody List<Long> cartIdList) {
         cartService.deleteCartList(cartIdList);
         return ApiResponse.ok(null);
     }
 
-    @PostMapping("/update/quantity")
-    public ApiResponse<Void> updateCart(@RequestBody CartUpdateRequest cartUpdateRequest) {
-        cartService.updateCartQuantity(cartUpdateRequest);
+    @PostMapping("/quantity/update")
+    public ApiResponse<Void> updateCartItemQuantity(@RequestBody CartItemUpdateRequest cartItemUpdateRequest) {
+        cartService.updateCartItemQuantity(cartItemUpdateRequest);
         return ApiResponse.ok(null);
     }
 }

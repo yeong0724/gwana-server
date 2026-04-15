@@ -19,7 +19,7 @@ public class Review {
     private Long reviewId;
 
     // 리뷰 대상 상품 ID
-    private String productId;
+    private Long productId;
 
     // 리뷰 내용
     private String content;

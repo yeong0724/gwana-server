@@ -6,10 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class CartUpdateListRequest {
-    private String productId;
-    private int quantity;
+@NoArgsConstructor
+@AllArgsConstructor
+public class CartItemDeleteRequest {
+    private Long cartItemId;
 }

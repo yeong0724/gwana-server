@@ -20,7 +20,9 @@ public class ProductService {
 
     public ProductDetailResponse getProduct(ProductRequest productRequest) {
         Product product = productMapper.selectProduct(productRequest);
-        List<ProductOption> options = productMapper.selectProductOption(productRequest);
+
+        Long productId = product.getProductId();
+        List<ProductOption> options = productMapper.selectProductOptions(productId);
 
         return ProductDetailResponse.builder()
                 .productId(product.getProductId())
@@ -31,7 +33,6 @@ public class ProductService {
                 .infos(product.getInfos())
                 .price(product.getPrice())
                 .shippingPrice(product.getShippingPrice())
-                .optionRequired(product.isOptionRequired())
                 .options(options)
                 .build();
     }

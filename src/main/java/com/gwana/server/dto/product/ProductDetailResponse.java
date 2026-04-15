@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDetailResponse {
-    private String productId;
+    private Long productId;
     private String productName;
     private String categoryId;
     private String categoryName;
@@ -20,6 +20,5 @@ public class ProductDetailResponse {
     private String[] infos;
     private Integer price;
     private Integer shippingPrice;
-    private boolean optionRequired;
     private List<ProductOption> options;
 }

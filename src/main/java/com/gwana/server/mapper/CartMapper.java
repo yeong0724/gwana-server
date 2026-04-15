@@ -1,9 +1,8 @@
 package com.gwana.server.mapper;
 
-import com.gwana.server.dto.cart.Cart;
-import com.gwana.server.dto.cart.CartDeleteRequest;
-import com.gwana.server.dto.cart.CartUpdateRequest;
+import com.gwana.server.dto.cart.*;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -11,9 +10,19 @@ import java.util.List;
 public interface CartMapper {
     List<Cart> selectCartList(String userId);
 
-    void upsertCart(CartUpdateRequest cartUpdateRequest);
+    List<CartItem> selectCartItemList(Long cartId);
+
+    Long selectCartByUserAndProduct(@Param("productId")Long productId, @Param("userId")String userId);
+
+    void insertCart(UpsertCartRequest upsertCartRequest);
+
+    void upsertCartItem(UpsertCartItemRequest upsertCartItemRequest);
+
+    void deleteCartItem(CartItemDeleteRequest cartItemDeleteRequest);
 
     void deleteCart(CartDeleteRequest cartDeleteRequest);
 
-    void updateCartQuantity(CartUpdateRequest cartUpdateRequest);
+    void deleteCartItemByCartId(CartDeleteRequest cartDeleteRequest);
+
+    void updateCartItemQuantity(CartItemUpdateRequest cartItemUpdateRequest);
 }

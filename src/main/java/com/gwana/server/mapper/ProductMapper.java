@@ -5,6 +5,7 @@ import com.gwana.server.dto.product.Product;
 import com.gwana.server.dto.product.ProductOption;
 import com.gwana.server.dto.product.ProductRequest;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -14,5 +15,5 @@ public interface ProductMapper {
 
     Product selectProduct(ProductRequest productRequest);
 
-    List<ProductOption> selectProductOption(ProductRequest productRequest);
+    List<ProductOption> selectProductOptions(@Param("productId")Long productId);
 }

@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class InquiryListSearchRequest {
     private String userId;
-    private String productId;
+    private Long productId;
     private LocalDate startDate;
     private LocalDate endDate;
     private String isAnswered;

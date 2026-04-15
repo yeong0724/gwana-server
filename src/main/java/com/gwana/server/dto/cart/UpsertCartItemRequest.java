@@ -7,12 +7,10 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class CartOption {
+@NoArgsConstructor
+public class UpsertCartItemRequest {
+    private Long productOptionId;
     private Long cartId;
-    private String optionId;
-    private String optionName;
-    private int optionPrice;
     private int quantity;
 }

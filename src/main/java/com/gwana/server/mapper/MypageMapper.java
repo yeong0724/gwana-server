@@ -21,7 +21,7 @@ public interface MypageMapper {
 
     int insertReview(ReviewCreateRequest reviewCreateRequest);
 
-    ReviewCountResponse selectReviewCount(String productId);
+    ReviewCountResponse selectReviewCount(Long productId);
 
     List<Review> selectReviewList(ReviewListSearchRequest reviewListSearchRequest);
 }

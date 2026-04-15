@@ -1,15 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.gwana.server.mapper.CartMapper">
-    <!-- Cart Update or Insert -->
-    <insert id="upsertCart" parameterType="com.gwana.server.dto.cart.CartUpdateRequest">
+    <select id="selectCartByUserAndProduct" resultType="Long">
+        SELECT cart_id
+        FROM cart
+        WHERE user_id = #{userId}
+          AND product_id = #{productId}
+    </select>
+
+    <insert id="insertCart" parameterType="com.gwana.server.dto.cart.UpsertCartRequest" useGeneratedKeys="true" keyProperty="cartId">
+        INSERT INTO cart (
+            product_id,
+            user_id,
+            created_at,
+            created_by
+        ) VALUES (
+            #{productId},
+            #{userId},
+            #{createdAt},
+            #{createdBy}
+        )
+    </insert>
+
+    <insert id="upsertCartItem" parameterType="com.gwana.server.dto.cart.UpsertCartItemRequest">
         <![CDATA[
-        INSERT INTO cart (product_id, option_id, user_id, quantity, created_by, created_at)
-        VALUES (#{productId}, #{optionId}, #{userId}, #{quantity}, #{createdBy}, #{createdAt})
-            ON DUPLICATE KEY UPDATE
-                                 quantity = quantity + #{quantity},
-                                 modified_at = #{modifiedAt},
-                                 modified_by = #{modifiedBy}
+            INSERT INTO cart_item (cart_id, product_option_id, quantity)
+            VALUES (#{cartId}, #{productOptionId}, #{quantity})
+            ON DUPLICATE KEY UPDATE quantity = quantity + #{quantity}
         ]]>
     </insert>
 
@@ -17,45 +34,49 @@
     <select id="selectCartList" resultType="com.gwana.server.dto.cart.Cart">
         SELECT c.cart_id,
                c.product_id,
-               c.quantity,
                p.product_name,
+               p.category_id,
                p.category_name,
                p.price,
                p.shipping_price,
-               p.images,
-               p.option_required,
-               po.option_id,
-               po.option_name,
-               po.option_price
-        FROM cart c
-            LEFT JOIN product p ON c.product_id = p.product_id
-            LEFT JOIN product_option po ON c.option_id = po.option_id
+               p.images
+        FROM cart c LEFT JOIN product p ON c.product_id = p.product_id
         WHERE user_id = #{userId}
     </select>
 
-    <!-- Cart Delete -->
-    <delete id="deleteCart" parameterType="com.gwana.server.dto.cart.CartDeleteRequest">
-        DELETE FROM cart
-        WHERE 1 = 1
-        <if test="cartId != null and cartId != ''">
-            AND cart_id = #{cartId}
-        </if>
-        <if test="optionId != null and optionId != ''">
-            AND option_id = #{optionId}
-        </if>
-        <if test="productId != null and productId != ''">
-            AND product_id = #{productId}
-        </if>
-        <if test="userId != null and userId != ''">
-            AND user_id = #{userId}
-        </if>
+    <select id="selectCartItemList" resultType="com.gwana.server.dto.cart.CartItem">
+        SELECT ci.cart_item_id,
+               ci.cart_id,
+               ci.quantity,
+               ci.product_option_id,
+               po.product_id,
+               po.option_name,
+               po.option_price,
+               po.is_required,
+               po.is_quantity_adjustable
+        FROM cart_item ci LEFT JOIN product_option po ON ci.product_option_id = po.product_option_id
+        WHERE ci.cart_id = #{cartId}
+        ORDER BY po.is_required DESC, po.option_name
+    </select>
+
+    <delete id="deleteCartItem" parameterType="com.gwana.server.dto.cart.CartItemDeleteRequest">
+        DELETE FROM cart_item
+        WHERE cart_item_id = #{cartItemId}
     </delete>
 
-    <update id="updateCartQuantity" parameterType="com.gwana.server.dto.cart.CartUpdateRequest">
-        UPDATE cart
-        SET quantity = #{quantity},
-            modified_by = #{modifiedBy},
-            modified_at = #{modifiedAt}
+    <delete id="deleteCartItemByCartId" parameterType="com.gwana.server.dto.cart.CartDeleteRequest">
+        DELETE FROM cart_item
         WHERE cart_id = #{cartId}
+    </delete>
+
+    <delete id="deleteCart" parameterType="com.gwana.server.dto.cart.CartDeleteRequest">
+        DELETE FROM cart
+        WHERE cart_id = #{cartId}
+    </delete>
+
+    <update id="updateCartItemQuantity" parameterType="com.gwana.server.dto.cart.CartItemUpdateRequest">
+        UPDATE cart_item
+        SET quantity = #{quantity}
+        WHERE cart_item_id = #{cartItemId}
     </update>
 </mapper>

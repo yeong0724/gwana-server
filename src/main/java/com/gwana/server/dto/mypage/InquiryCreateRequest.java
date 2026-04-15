@@ -16,6 +16,6 @@ public class InquiryCreateRequest extends BaseDto {
     private String title;
     private String content;
     private String isSecret;
-    private String productId;
+    private Long productId;
     private String upperInquiryId;
 }

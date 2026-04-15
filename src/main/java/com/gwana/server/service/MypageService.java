@@ -163,7 +163,7 @@ public class MypageService {
         int offset = page * size;
         reviewListSearchRequest.setOffset(offset);
 
-        String productId = reviewListSearchRequest.getProductId();
+        Long productId = reviewListSearchRequest.getProductId();
         ReviewCountResponse reviewCountResponse = mypageMapper.selectReviewCount(productId);
 
         long totalCount = reviewCountResponse.getTotalCount();

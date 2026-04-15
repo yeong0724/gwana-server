@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReviewListSearchRequest {
-    private String productId;
+    private Long productId;
     /**
      * - recommended: 별점순
      * - latest: 최신순

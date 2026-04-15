@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PaymentSessionRequest {
-    private String productId;
+    private Long productId;
     private String quantity;
     private String sessionId;
     private String userId;

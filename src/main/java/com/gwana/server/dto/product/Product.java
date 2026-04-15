@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
-    private String productId;
+    private Long productId;
     private String productName;
     private String categoryId;
     private String categoryName;
@@ -18,5 +18,4 @@ public class Product {
     private String[] infos;
     private Integer price;
     private Integer shippingPrice;
-    private boolean optionRequired;
 }
