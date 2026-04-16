@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,4 +20,6 @@ public class Product {
     private String[] infos;
     private Integer price;
     private Integer shippingPrice;
+    private BigDecimal avgRating;
+    private int reviewCount;
 }

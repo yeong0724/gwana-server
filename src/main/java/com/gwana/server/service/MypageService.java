@@ -150,10 +150,16 @@ public class MypageService {
     }
 
     public void createReview(ReviewCreateRequest reviewCreateRequest) {
-        int result = mypageMapper.insertReview(reviewCreateRequest);
+        int reviewCreateResult = mypageMapper.insertReview(reviewCreateRequest);
+
+        if (reviewCreateResult <= 0) {
+            throw new CommonException(REVIEW_CREATE_FAILED);
+        }
+
+        int result = mypageMapper.upsertReviewStats(reviewCreateRequest);
 
         if (result <= 0) {
-            throw new CommonException(REVIEW_CREATE_FAILED);
+            throw new CommonException(REVIEW_STAT_UPSERT_FAILED);
         }
     }
 

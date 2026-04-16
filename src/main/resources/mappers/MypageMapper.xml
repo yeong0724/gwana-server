@@ -172,9 +172,9 @@
         )
     </insert>
     <select id="selectReviewCount" resultType="com.gwana.server.dto.mypage.ReviewCountResponse">
-        SELECT COUNT(*) as totalCount,
-               COALESCE(AVG(rating), 0) as averageRating
-        FROM review
+        SELECT review_count as totalCount,
+               avg_rating as averageRating
+        FROM product_review_stats
         WHERE product_id = #{productId}
     </select>
     <select id="selectReviewList" resultType="com.gwana.server.dto.mypage.Review">
@@ -202,4 +202,13 @@
         </choose>
         LIMIT #{size} OFFSET #{offset}
     </select>
+    <insert id="upsertReviewStats">
+        <![CDATA[
+            INSERT INTO product_review_stats (product_id, avg_rating, review_count)
+            VALUES (#{productId}, #{rating}, 1)
+            ON DUPLICATE KEY UPDATE
+                avg_rating = ROUND((avg_rating * review_count + #{rating}) / (review_count + 1), 1),
+                review_count = review_count + 1
+        ]]>
+    </insert>
 </mapper>

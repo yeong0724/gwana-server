@@ -1,5 +1,5 @@
 app:
-  base-url: ${APP_BASE_URL}
+  base-url: ${APP_BASE_URL:http://localhost:3000}
   cookie:
     secure: true
     max-age: 86400
@@ -23,17 +23,17 @@ spring:
 
   datasource:
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: jdbc:log4jdbc:mysql://mysql-gwana-database.crwassomidre.ap-northeast-2.rds.amazonaws.com:3306/gwana-db?serverTimezone=Asia/Seoul
-    username: myuser
-    password: "${DB_PASSWORD}"
+    url: ${DB_URL:jdbc:log4jdbc:mysql://localhost:3306/social-login}?serverTimezone=Asia/Seoul
+    username: ${DB_USERNAME:root}
+    password: "${DB_PASSWORD:1234}"
 
   security:
     oauth2:
       client:
         registration:
           kakao:
-            client-id: 5d2d2c019e26a0aa2bec0d372d25a460
-            client-secret: ${KAKAO_CLIENT_SECRET}
+            client-id: ${KAKAO_CLIENT_ID:5d2d2c019e26a0aa2bec0d372d25a460}
+            client-secret: ${KAKAO_CLIENT_SECRET:u7rooE7phRvsCwGICLGSFMDZbOSBYpjb}
             client-name: Kakao
             authorization-grant-type: authorization_code
             redirect-uri: ${app.base-url}/login/oauth2/code/kakao
@@ -54,19 +54,19 @@ cloud:
     s3:
       bucket: gwana-images
     credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
+      access-key: ${AWS_ACCESS_KEY:AKIASOAPWMLCG4XJFY4C}
+      secret-key: "${AWS_SECRET_KEY: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}"
     region:
       static: ap-northeast-2
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:FlRpX30pMqDbiAkmlfArbrmVkDD4RqISskGZmBFax5oGVxzXXWUzTR5JyskiHMIV9M1Oicegkpi46AdvrcX1E6CmTUBc6IFbTPiD}
   expire:
     access-token: 30 # 30분
     refresh-token: 1440 # 24시간
 
 toss:
-  secret-key: ${TOSS_SECRET_KEY}
+  secret-key: "${TOSS_SECRET_KEY:test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6}"
   api-url: https://api.tosspayments.com
 
 # MyBatis 상세 로그 활성화

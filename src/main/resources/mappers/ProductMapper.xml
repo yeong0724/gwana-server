@@ -10,18 +10,22 @@
         <result property="infos" column="infos" />
         <result property="price" column="price"/>
         <result property="shippingPrice" column="shipping_price"/>
+        <result property="avgRating" column="avg_rating"/>
+        <result property="reviewCount" column="review_count"/>
     </resultMap>
 
     <select id="selectProductList" resultMap="ProductResultMap">
-        SELECT product_id,
+        SELECT p.product_id,
                product_name,
                category_id,
                category_name,
                images,
                infos,
                price,
-               shipping_price
-        FROM product
+               shipping_price,
+               COALESCE(prs.avg_rating, 0) AS avg_rating,
+               COALESCE(prs.review_count, 0) AS review_count
+        FROM product p LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
         <where>
             <if test="categoryId != null and categoryId != ''">
                 category_id = #{categoryId}
