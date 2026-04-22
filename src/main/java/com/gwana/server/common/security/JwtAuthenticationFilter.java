@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -64,17 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		try {
 			if (accessToken != null && tokenService.validateToken(accessToken)) {
 				SocialUser socialUser = tokenService.findUserByAccessToken(accessToken);
-				List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(socialUser.getRole().toString()));
-				String password = Optional.ofNullable(socialUser.getPassword()).orElse("password");
-				AuthUser principal = new AuthUser(
-						socialUser.getUserId(),
-						socialUser.getUsername(),
-						password,
-						socialUser.getEmail(),
-						socialUser.getPhone(),
-						authorities
-				);
-				Authentication authentication = new UsernamePasswordAuthenticationToken(principal, socialUser.getUserId(), authorities);
+				Authentication authentication = getAuthentication(socialUser);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			}
 
@@ -83,6 +74,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			handlerExceptionResolver.resolveException(request, response, null, exception);
 		}
     }
+
+	@NonNull
+	private static Authentication getAuthentication(SocialUser socialUser) {
+		List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + socialUser.getRole().name()));
+		String password = Optional.ofNullable(socialUser.getPassword()).orElse("password");
+		AuthUser principal = new AuthUser(
+				socialUser.getUserId(),
+				socialUser.getUsername(),
+				password,
+				socialUser.getEmail(),
+				socialUser.getPhone(),
+				authorities
+		);
+		return new UsernamePasswordAuthenticationToken(principal, socialUser.getUserId(), authorities);
+	}
 
 	private String resolveToken(HttpServletRequest httpServletRequest) {
 		String bearerToken = httpServletRequest.getHeader("Authorization");

@@ -1,9 +1,11 @@
 package com.gwana.server.client;
 
+import com.gwana.server.common.exception.CustomException;
 import com.gwana.server.dto.user.UserFromKakao;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 import java.util.Map;
@@ -45,11 +47,17 @@ public class KakaoUserHttpClient {
     }
 
     public void kakaoLogout(String accessToken) {
-        restClient.post()
-                .uri(logoutUrl)
-                .header("Authorization", "Bearer " + accessToken)
-                .retrieve()
-                .toBodilessEntity();
+        try {
+            restClient.post()
+                    .uri(logoutUrl)
+                    .header("Authorization", "Bearer " + accessToken)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpClientErrorException.Unauthorized e) {
+            throw new CustomException("1000", "카카오 로그아웃에 실패했습니다. 이미 만료되었거나 존재하지 않는 토큰입니다.");
+        } catch (HttpClientErrorException e) {
+            throw new CustomException("1000", "카카오 로그아웃 처리 중 오류가 발생했습니다.");
+        }
     }
 
     public String getPhoneNumber(String phone) {

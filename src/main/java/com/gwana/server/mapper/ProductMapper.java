@@ -1,9 +1,6 @@
 package com.gwana.server.mapper;
 
-import com.gwana.server.dto.product.ProductListRequest;
-import com.gwana.server.dto.product.Product;
-import com.gwana.server.dto.product.ProductOption;
-import com.gwana.server.dto.product.ProductRequest;
+import com.gwana.server.dto.product.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -16,4 +13,14 @@ public interface ProductMapper {
     Product selectProduct(ProductRequest productRequest);
 
     List<ProductOption> selectProductOptions(@Param("productId")Long productId);
+
+    void insertProduct(ProductUpdateRequest productUpdateRequest);
+
+    void updateProduct(ProductUpdateRequest productUpdateRequest);
+
+    void insertProductOption(ProductOption productOption);
+
+    void updateProductOption(ProductOption productOption);
+
+    void deleteProductOption(ProductOptionDeleteRequest productOption);
 }

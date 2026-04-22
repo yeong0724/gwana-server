@@ -63,12 +63,16 @@ public class WebSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // jwt 기반 인증이므로 Session 사용 안함
                 )
                 .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/", "/auth/**", "/user/**", "/product/**", "/mypage/search/review/list")
-                    .permitAll() // root 및 /auth url은 인증 필요없음
-                    .requestMatchers("/error")  // 모든 v1 API 경로 허용 (존재하지 않는 것도)
-                    .permitAll()
-                    .anyRequest() // 나머지 요청에 대해서는 인증 처리
-                    .authenticated()
+                    .requestMatchers(
+                            "/",
+                            "/auth/**",
+                            "/user/**",
+                            "/product/**",
+                            "/mypage/search/review/list"
+                    ).permitAll() // root 및 /auth url은 인증 필요없음
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/error").permitAll()
+                    .anyRequest().authenticated() // 나머지 요청에 대해서는 인증 처리
                 )
                 .oauth2Login(oauth2 -> oauth2.failureUrl("/login?error=true"))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

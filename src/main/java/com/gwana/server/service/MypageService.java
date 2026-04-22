@@ -172,8 +172,13 @@ public class MypageService {
         Long productId = reviewListSearchRequest.getProductId();
         ReviewCountResponse reviewCountResponse = mypageMapper.selectReviewCount(productId);
 
-        long totalCount = reviewCountResponse.getTotalCount();
-        BigDecimal averageRating = reviewCountResponse.getAverageRating();
+        long totalCount = 0;
+        BigDecimal averageRating = BigDecimal.ZERO;
+
+        if (reviewCountResponse != null) {
+            totalCount = reviewCountResponse.getTotalCount();
+            averageRating = reviewCountResponse.getAverageRating();
+        }
 
         boolean hasNext = (long) (page + 1) * size < totalCount;
         List<Review> list = mypageMapper.selectReviewList(reviewListSearchRequest);

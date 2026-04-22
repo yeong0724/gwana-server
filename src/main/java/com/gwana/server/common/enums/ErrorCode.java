@@ -13,7 +13,7 @@ public enum ErrorCode {
     REVIEW_CREATE_FAILED("3001", "리뷰 등록에 실패하였습니다."),
     REVIEW_STAT_UPSERT_FAILED("3002", "리뷰 통계 갱신에 실패하였습니다."),
     AUTHENTICATION_FAILED("4001", "인증에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요."),
-    FORBIDDEN_ERROR("4002", "접근 권한이 없습니다"),
+    FORBIDDEN_ERROR("4002", "해당 요청에 대한 권한이 없습니다"),
     UNAUTHORIZED_ERROR("4003", "인증이 유효하지 않습니다. 로그인해주세요."),
     INVALID_TOKEN("4004", "유효한 토큰이 아닙니다. 로그인해주세요."),
     EXPIRED_TOKEN_ERROR("4005", "로그인이 만료되었습니다. 다시 로그인해주세요."),

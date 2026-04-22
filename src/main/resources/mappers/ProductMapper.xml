@@ -44,6 +44,31 @@
                shipping_price
         FROM product WHERE product_id = #{productId}
     </select>
+
+    <insert id="insertProduct" parameterType="com.gwana.server.dto.product.ProductUpdateRequest" useGeneratedKeys="true" keyProperty="productId">
+        INSERT INTO product (
+            product_name,
+            category_id,
+            category_name,
+            images,
+            infos,
+            price,
+            shipping_price,
+            created_by,
+            created_at
+        ) VALUES (
+            #{productName},
+            #{categoryId},
+            #{categoryName},
+            #{images},
+            #{infos},
+            #{price},
+            #{shippingPrice},
+            #{createdBy},
+            #{createdAt}
+        )
+    </insert>
+
     <select id="selectProductOptions" resultType="com.gwana.server.dto.product.ProductOption">
         SELECT product_option_id,
                product_id,
@@ -55,4 +80,49 @@
         WHERE (product_id = #{productId} OR product_id IS NULL)
         ORDER BY option_name DESC
     </select>
+
+    <update id="updateProduct" parameterType="com.gwana.server.dto.product.ProductUpdateRequest">
+        UPDATE product
+        <set>
+            <if test="productName != null">product_name = #{productName},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="categoryName != null">category_name = #{categoryName},</if>
+            <if test="images != null">images = #{images},</if>
+            <if test="infos != null">infos = #{infos},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="shippingPrice != null">shipping_price = #{shippingPrice},</if>
+            modified_at = #{modifiedAt},
+            modified_by = #{modifiedBy}
+        </set>
+        WHERE product_id = #{productId}
+    </update>
+
+    <insert id="insertProductOption" parameterType="com.gwana.server.dto.product.ProductOption" useGeneratedKeys="true" keyProperty="productOptionId">
+        INSERT INTO product_option (
+            product_id,
+            option_name,
+            option_price,
+            is_required,
+            is_quantity_adjustable
+        ) VALUES (
+            #{productId},
+            #{optionName},
+            #{optionPrice},
+            #{isRequired},
+            #{isQuantityAdjustable}
+        )
+    </insert>
+
+    <update id="updateProductOption" parameterType="com.gwana.server.dto.product.ProductOption">
+        UPDATE product_option
+        SET option_name = #{optionName},
+            option_price = #{optionPrice}
+        WHERE product_option_id = #{productOptionId}
+    </update>
+
+    <delete id="deleteProductOption">
+        DELETE FROM product_option
+        WHERE product_option_id = #{productOptionId}
+    </delete>
+
 </mapper>
