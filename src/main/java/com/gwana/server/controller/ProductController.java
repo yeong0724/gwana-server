@@ -24,6 +24,6 @@ public class ProductController {
 
     @PostMapping("/detail/search")
     public ApiResponse<ProductDetailResponse> searchProduct(@RequestBody ProductRequest productRequest) {
-        return ApiResponse.ok(productService.getProduct(productRequest));
+        return ApiResponse.ok(productService.getProductDetail(productRequest));
     }
 }

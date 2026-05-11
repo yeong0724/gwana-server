@@ -70,7 +70,11 @@ public class S3UploadClient {
                 .key(fileName)
                 .build();
 
-        s3Client.deleteObject(request);
+        try {
+            s3Client.deleteObject(request);
+        } catch (RuntimeException e) {
+            throw new CustomException(S3_SERVER_ERROR.getCode(), e.getMessage());
+        }
     }
 
     /**

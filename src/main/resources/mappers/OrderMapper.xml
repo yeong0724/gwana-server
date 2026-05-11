@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gwana.server.mapper.OrderMapper">
+
+    <insert id="insertOrder" parameterType="com.gwana.server.dto.order.CreateOrder">
+        INSERT INTO orders (
+            order_id,
+            product_amount,
+            shipping_fee,
+            discount_amount,
+            total_amount,
+            order_status,
+            created_at,
+            created_by,
+            modified_at,
+            modified_by
+        ) VALUES (
+            #{orderId},
+            #{productAmount},
+            #{shippingFee},
+            #{discountAmount},
+            #{totalAmount},
+            #{orderStatus},
+            #{createdAt},
+            #{createdBy},
+            #{modifiedAt},
+            #{modifiedBy}
+        )
+    </insert>
+
+    <insert id="insertOrderItems" parameterType="java.util.List">
+        INSERT INTO order_items (
+            order_id,
+            product_id,
+            product_name,
+            product_thumbnail_url,
+            category_name,
+            product_option_id,
+            option_name,
+            option_price,
+            quantity,
+            is_required
+        ) VALUES
+        <foreach collection="createOrderItems" item="createOrderItem" separator=",">
+            (
+                #{createOrderItem.orderId},
+                #{createOrderItem.productId},
+                #{createOrderItem.productName},
+                #{createOrderItem.productThumbnailUrl},
+                #{createOrderItem.categoryName},
+                #{createOrderItem.productOptionId},
+                #{createOrderItem.optionName},
+                #{createOrderItem.optionPrice},
+                #{createOrderItem.quantity},
+                #{createOrderItem.isRequired}
+            )
+        </foreach>
+    </insert>
+
+
+    <select id="selectOrder" parameterType="com.gwana.server.dto.order.OrderSearchRequest">
+        SELECT order_id,
+               product_amount,
+               shipping_fee,
+               discount_amount,
+               total_amount,
+               order_status,
+               sender_name,
+               sender_phone,
+               recipient_name,
+               recipient_phone,
+               zonecode,
+               road_address,
+               detail_address,
+               delivery_request,
+               delivery_request_detail
+        FROM orders
+        WHERE order_id = #{orderId}
+    </select>
+    <select id="selectOrderItems" parameterType="com.gwana.server.dto.order.OrderSearchRequest">
+        SELECT order_item_id,
+               order_id,
+               product_id,
+               product_name,
+               product_thumbnail_url,
+               category_name,
+               product_option_id,
+               option_name,
+               option_price,
+               quantity,
+               is_required
+        FROM order_items
+        WHERE order_id = #{orderId}
+    </select>
+</mapper>

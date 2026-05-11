@@ -33,7 +33,7 @@
         </where>
     </select>
 
-    <select id="selectProduct" parameterType="com.gwana.server.dto.product.ProductRequest" resultMap="ProductResultMap">
+    <select id="selectProduct" resultMap="ProductResultMap">
         SELECT product_id,
                product_name,
                category_id,
@@ -43,6 +43,14 @@
                price,
                shipping_price
         FROM product WHERE product_id = #{productId}
+    </select>
+
+    <select id="selectProductOption" resultType="com.gwana.server.dto.product.ProductOption">
+        SELECT product_option_id,
+               option_price,
+               option_name,
+               is_required
+        FROM product_option WHERE product_option_id = #{productOptionId}
     </select>
 
     <insert id="insertProduct" parameterType="com.gwana.server.dto.product.ProductUpdateRequest" useGeneratedKeys="true" keyProperty="productId">

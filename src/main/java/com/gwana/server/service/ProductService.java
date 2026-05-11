@@ -22,10 +22,15 @@ public class ProductService {
         return productMapper.selectProductList(productListRequest);
     }
 
-    public ProductDetailResponse getProduct(ProductRequest productRequest) {
-        Product product = productMapper.selectProduct(productRequest);
+    public Product getProduct(Long productId) {
+        return productMapper.selectProduct(productId);
+    }
 
-        Long productId = product.getProductId();
+    public ProductDetailResponse getProductDetail(ProductRequest productRequest) {
+        Long productId = productRequest.getProductId();
+
+        Product product = this.getProduct(productId);
+
         List<ProductOption> options = productMapper.selectProductOptions(productId);
 
         return ProductDetailResponse.builder()
@@ -74,5 +79,9 @@ public class ProductService {
 
     public void deleteProductOption(ProductOptionDeleteRequest productOptionDeleteRequest) {
         productMapper.deleteProductOption(productOptionDeleteRequest);
+    }
+
+    public ProductOption getProductOption(Long productOptionId) {
+        return productMapper.selectProductOption(productOptionId);
     }
 }

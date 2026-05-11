@@ -42,7 +42,7 @@ public class AuditingInterceptor implements Interceptor {
                 setFieldValue(parameter, CREATED_BY, currentUser);
             }
 
-            if (sqlCommandType == SqlCommandType.INSERT || sqlCommandType == SqlCommandType.UPDATE) {
+            if (sqlCommandType == SqlCommandType.UPDATE) {
                 setFieldValue(parameter, MODIFIED_AT, LocalDateTime.now());
                 setFieldValue(parameter, MODIFIED_BY, currentUser);
             }

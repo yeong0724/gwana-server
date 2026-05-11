@@ -22,8 +22,8 @@ spring:
     name: gwana-server
 
   datasource:
-    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: ${DB_URL:jdbc:log4jdbc:mysql://localhost:3306/social-login}?serverTimezone=Asia/Seoul
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL:jdbc:mysql://localhost:3306/social-login}?serverTimezone=Asia/Seoul
     username: ${DB_USERNAME:root}
     password: "${DB_PASSWORD:1234}"
 
@@ -69,7 +69,6 @@ toss:
   secret-key: "${TOSS_SECRET_KEY:test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6}"
   api-url: https://api.tosspayments.com
 
-# MyBatis 상세 로그 활성화
 mybatis:
   mapper-locations: classpath:mappers/*.xml
   configuration:
@@ -82,6 +81,18 @@ server:
 logging:
   level:
     root: INFO
-    com.gwana: DEBUG
+    com.gwana: INFO
+    # SQL 디버깅이 필요하면 아래 주석 해제 (운영에선 끄세요)
+    # com.gwana.server.mapper: DEBUG
+    # org.mybatis: DEBUG
+
+    # log4jdbc 잔재 차단 (드라이버를 바꿔도 의존성이 남아있을 수 있어 명시적으로 OFF)
+    jdbc: OFF
+    jdbc.sqlonly: OFF
+    jdbc.sqltiming: OFF
+    jdbc.audit: OFF
+    jdbc.resultset: OFF
+    jdbc.resultsettable: OFF
+    jdbc.connection: OFF
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

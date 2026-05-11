@@ -8,7 +8,7 @@
         <result property="password" column="password"/>
         <result property="email" column="email"/>
         <result property="phone" column="phone"/>
-        <result property="role" column="role" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="role" column="role" />
         <result property="createdAt" column="created_at"/>
         <result property="createdBy" column="created_by"/>
         <result property="modifiedAt" column="modified_at"/>
