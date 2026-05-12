@@ -19,4 +19,10 @@ public class InquiryAnswerResponse {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;
+
+
+    public void mask() {
+        this.title = "";
+        this.content = "";
+    }
 }

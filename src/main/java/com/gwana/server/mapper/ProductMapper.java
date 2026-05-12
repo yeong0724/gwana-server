@@ -1,5 +1,7 @@
 package com.gwana.server.mapper;
 
+import com.gwana.server.dto.mypage.Inquiry;
+import com.gwana.server.dto.mypage.ProductInquiryListSearchRequest;
 import com.gwana.server.dto.product.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -25,4 +27,8 @@ public interface ProductMapper {
     void updateProductOption(ProductOption productOption);
 
     void deleteProductOption(ProductOptionDeleteRequest productOption);
+
+    long selectProductInquiryCount(ProductInquiryListSearchRequest productInquiryListSearchRequest);
+
+    List<Inquiry> selectProductInquiryList(ProductInquiryListSearchRequest productInquiryListSearchRequest);
 }

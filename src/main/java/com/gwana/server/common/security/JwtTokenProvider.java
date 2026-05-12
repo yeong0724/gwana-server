@@ -1,5 +1,6 @@
 package com.gwana.server.common.security;
 
+import com.gwana.server.common.enums.Role;
 import com.gwana.server.dto.user.AuthUser;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,8 +27,9 @@ public class JwtTokenProvider {
         return (AuthUser) authentication.getPrincipal();
     }
 
-    public String getRole() {
+    public Role getRole() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getAuthorities().stream().findFirst().orElseThrow(RuntimeException::new).getAuthority();
+        String role = authentication.getAuthorities().stream().findFirst().orElseThrow(RuntimeException::new).getAuthority();
+        return Role.valueOf(role.replace("ROLE_", ""));
     }
 }

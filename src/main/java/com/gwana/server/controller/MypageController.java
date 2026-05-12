@@ -39,18 +39,18 @@ public class MypageController {
         return ApiResponse.ok(mypageService.updateMyinfo(myinfoUpdateRequest));
     }
 
-    @PostMapping("/create/inquiry")
+    @PostMapping("/inquiry/create")
     public ApiResponse<Void> createInquiry(@RequestBody InquiryCreateRequest inquiryCreateRequest) {
         mypageService.createInquiry(inquiryCreateRequest);
         return ApiResponse.ok(null);
     }
 
-    @PostMapping("/search/inquiry/list")
+    @PostMapping("/inquiry/list/search")
     public ApiResponse<InfiniteResponse<List<Inquiry>>> searchInquiryList(@RequestBody InquiryListSearchRequest inquiryListSearchRequest) {
         return ApiResponse.ok(mypageService.searchInquiryList(inquiryListSearchRequest));
     }
 
-    @PostMapping("/search/inquiry")
+    @PostMapping("/inquiry/search")
     public ApiResponse<Inquiry> searchInquiry(@RequestBody InquirySearchRequest inquirySearchRequest) {
         return ApiResponse.ok(mypageService.searchInquiry(inquirySearchRequest));
     }
@@ -65,13 +65,13 @@ public class MypageController {
         return ApiResponse.ok(mypageService.uploadImages(multipartFiles, folderPath, maxFileSize, maxFileCount));
     }
 
-    @PostMapping("/create/review")
+    @PostMapping("/review/create")
     public ApiResponse<Void> createReview(@RequestBody ReviewCreateRequest reviewCreateRequest) {
         mypageService.createReview(reviewCreateRequest);
         return ApiResponse.ok(null);
     }
 
-    @PostMapping("/search/review/list")
+    @PostMapping("/review/list/search")
     public ApiResponse<InfiniteResponse<List<Review>>> searchReviewList(@RequestBody ReviewListSearchRequest reviewListSearchRequest) {
         return ApiResponse.ok(mypageService.searchReviewList(reviewListSearchRequest));
     }

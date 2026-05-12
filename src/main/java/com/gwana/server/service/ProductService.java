@@ -1,8 +1,14 @@
 package com.gwana.server.service;
 
 import com.gwana.server.client.S3UploadClient;
+import com.gwana.server.common.security.JwtTokenProvider;
 import com.gwana.server.common.utils.Validate;
+import com.gwana.server.dto.AuthAware;
+import com.gwana.server.dto.InfiniteResponse;
+import com.gwana.server.dto.mypage.Inquiry;
+import com.gwana.server.dto.mypage.ProductInquiryListSearchRequest;
 import com.gwana.server.dto.product.*;
+import com.gwana.server.dto.user.AuthUser;
 import com.gwana.server.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +23,7 @@ import java.util.List;
 public class ProductService {
     private final ProductMapper productMapper;
     private final S3UploadClient s3UploadClient;
+    private final JwtTokenProvider jwtTokenProvider;
 
     public List<Product> getProductList(ProductListRequest productListRequest) {
         return productMapper.selectProductList(productListRequest);
@@ -83,5 +90,37 @@ public class ProductService {
 
     public ProductOption getProductOption(Long productOptionId) {
         return productMapper.selectProductOption(productOptionId);
+    }
+
+    public InfiniteResponse<List<Inquiry>> productsInquiryListSearch(ProductInquiryListSearchRequest productInquiryListSearchRequest) {
+        injectAuthInfo(productInquiryListSearchRequest);
+
+        int page = productInquiryListSearchRequest.getPage();
+        int size = productInquiryListSearchRequest.getSize();
+        int offset = page * size;
+        productInquiryListSearchRequest.setOffset(offset);
+
+
+        long totalCount = productMapper.selectProductInquiryCount(productInquiryListSearchRequest);
+        boolean hasNext = (long) (page + 1) * size < totalCount;
+        List<Inquiry> list = productMapper.selectProductInquiryList(productInquiryListSearchRequest);
+
+        list.forEach(Inquiry::mask);
+
+        return InfiniteResponse.<List<Inquiry>>builder()
+                .data(list)
+                .page(page)
+                .size(size)
+                .totalCount(totalCount)
+                .hasNext(hasNext)
+                .build();
+    }
+
+    private void injectAuthInfo(AuthAware request) {
+        AuthUser authUser = jwtTokenProvider.getUserInfo();
+        if (authUser != null) {
+            request.setUserId(authUser.getUserId());
+            request.setRole(jwtTokenProvider.getRole());
+        }
     }
 }

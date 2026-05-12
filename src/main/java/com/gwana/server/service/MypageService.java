@@ -1,10 +1,12 @@
 package com.gwana.server.service;
 
 import com.gwana.server.client.S3UploadClient;
+import com.gwana.server.common.enums.Role;
 import com.gwana.server.common.exception.CommonException;
 import com.gwana.server.common.exception.CustomException;
 import com.gwana.server.common.security.JwtTokenProvider;
 import com.gwana.server.common.utils.Validate;
+import com.gwana.server.dto.AuthAware;
 import com.gwana.server.dto.InfiniteResponse;
 import com.gwana.server.dto.mypage.*;
 import com.gwana.server.dto.user.AuthUser;
@@ -121,11 +123,7 @@ public class MypageService {
     }
 
     public InfiniteResponse<List<Inquiry>> searchInquiryList(InquiryListSearchRequest inquiryListSearchRequest) {
-        AuthUser authUser = jwtTokenProvider.getUserInfo();
-        String userId = authUser.getUserId();
-        String role = jwtTokenProvider.getRole();
-        inquiryListSearchRequest.setUserId(userId);
-        inquiryListSearchRequest.setRole(role);
+        injectAuthInfo(inquiryListSearchRequest);
 
         int page = inquiryListSearchRequest.getPage();
         int size = inquiryListSearchRequest.getSize();
@@ -193,4 +191,9 @@ public class MypageService {
                 .build();
     }
 
+    private void injectAuthInfo(AuthAware request) {
+        AuthUser authUser = jwtTokenProvider.getUserInfo();
+        request.setUserId(authUser.getUserId());
+        request.setRole(jwtTokenProvider.getRole());
+    }
 }

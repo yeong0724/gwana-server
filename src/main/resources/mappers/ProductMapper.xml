@@ -133,4 +133,98 @@
         WHERE product_option_id = #{productOptionId}
     </delete>
 
+    <select id="selectProductInquiryCount" resultType="long">
+        SELECT COUNT(*)
+        FROM inquiry i
+        <where>
+            <if test="productId != null and productId != ''">
+                AND product_id = #{productId}
+            </if>
+            <if test="isAnswered != null and isAnswered != ''">
+                AND is_answered = #{isAnswered}
+            </if>
+            <if test='excludeSecret != null and excludeSecret == "Y"'>
+                AND is_secret = 'N'
+            </if>
+            AND i.upper_inquiry_id IS NULL
+        </where>
+    </select>
+
+    <resultMap id="ProductInquiryWithAnswerMap" type="com.gwana.server.dto.mypage.Inquiry">
+        <id property="inquiryId" column="inquiry_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="isSecret" column="is_secret"/>
+        <result property="isAnswered" column="is_answered"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="username" column="username"/>
+        <result property="email" column="email"/>
+        <result property="canView" column="can_view"/>
+
+        <association property="answer" javaType="com.gwana.server.dto.mypage.InquiryAnswerResponse">
+            <id property="title" column="answer_title"/>
+            <result property="content" column="answer_content"/>
+            <result property="createdAt" column="answer_created_at"/>
+        </association>
+    </resultMap>
+
+    <select id="selectProductInquiryList" resultMap="ProductInquiryWithAnswerMap">
+        SELECT i.inquiry_id,
+               i.product_id,
+               CASE
+                   WHEN i.is_secret = 'Y'
+                    AND (#{role} IS NULL OR #{role} != 'ADMIN')
+                    AND (#{userId} IS NULL OR i.created_by != #{userId})
+                    THEN ''
+                   ELSE i.title
+               END AS title,
+               CASE
+                   WHEN i.is_secret = 'Y'
+                    AND (#{role} IS NULL OR #{role} != 'ADMIN')
+                    AND (#{userId} IS NULL OR i.created_by != #{userId})
+                    THEN ''
+                   ELSE i.content
+               END AS content,
+               i.is_secret,
+               i.is_answered,
+               i.created_at,
+               i.created_by,
+               u.username,
+               u.email,
+               CASE
+                   WHEN i.is_secret = 'N' THEN TRUE
+                   WHEN #{role} = 'ADMIN' THEN TRUE
+                   WHEN #{userId} IS NOT NULL AND i.created_by = #{userId} THEN TRUE
+                   ELSE FALSE
+               END AS can_view,
+               CASE
+                   WHEN i.is_secret = 'Y'
+                    AND (#{role} IS NULL OR #{role} != 'ADMIN')
+                    AND (#{userId} IS NULL OR i.created_by != #{userId})
+                    THEN ''
+                   ELSE a.title
+               END AS answer_title,
+               CASE
+                   WHEN i.is_secret = 'Y'
+                    AND (#{role} IS NULL OR #{role} != 'ADMIN')
+                    AND (#{userId} IS NULL OR i.created_by != #{userId})
+                    THEN ''
+                   ELSE a.content
+               END AS answer_content,
+               a.created_at AS answer_created_at
+        FROM inquiry i
+            LEFT JOIN users u ON u.user_id = i.created_by
+            LEFT JOIN inquiry a ON a.upper_inquiry_id = i.inquiry_id
+        <where>
+            i.product_id = #{productId}
+            AND i.upper_inquiry_id is null
+            <if test='excludeSecret != null and excludeSecret == "Y"'>
+                AND i.is_secret = 'N'
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
 </mapper>

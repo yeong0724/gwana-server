@@ -18,7 +18,6 @@ public class Inquiry {
 
     // 문의대상 상풍 정보 (단순 문의글인 경우 nullable)
     private Long productId;
-    private String productName;
 
     private String title;
     private String content;
@@ -34,8 +33,22 @@ public class Inquiry {
 
     // 작성자 이름
     private String username;
+
     // 작성자 연락처
     private String phone;
 
+    // 이메일
+    private String email;
+
+    private boolean canView;
+
     private InquiryAnswerResponse answer;
+
+    public void mask() {
+        if (!this.canView) {
+            this.title = "";
+            this.content = "";
+            answer.mask();
+        }
+    }
 }

@@ -47,7 +47,7 @@
         SELECT COUNT(*)
         FROM inquiry i
         <where>
-            <if test="role != 'ADMIN'">
+            <if test="role == null or role.name() != 'ADMIN'">
                 i.created_by = #{userId}
             </if>
             <if test="productId != null and productId != ''">
@@ -81,25 +81,11 @@
                u.username
         FROM inquiry i LEFT JOIN users u ON u.user_id = i.created_by
         <where>
-            <if test="role != 'ADMIN'">
-                i.created_by = #{userId}
-            </if>
             <if test="productId != null and productId != ''">
                 AND product_id = #{productId}
             </if>
             <if test="isAnswered != null and isAnswered != ''">
                 AND is_answered = #{isAnswered}
-            </if>
-            <if test="startDate != null">
-                <![CDATA[
-                    AND i.created_at >= #{startDate}
-                ]]>
-            </if>
-            <if test="endDate != null">
-                <![CDATA[
-                    /* 종료일 당일의 전체 데이터를 포함하기 위해 1일을 더한 미만 조건 사용 */
-                    AND i.created_at < DATE_ADD(#{endDate}, INTERVAL 1 DAY)
-                ]]>
             </if>
             AND i.upper_inquiry_id is null
         </where>
@@ -145,7 +131,6 @@
             LEFT JOIN product p ON p.product_id = i.product_id
             LEFT JOIN inquiry a ON a.upper_inquiry_id = i.inquiry_id
         WHERE i.inquiry_id = #{inquiryId}
-
     </select>
 
     <update id="updateIsAnswered" parameterType="string">

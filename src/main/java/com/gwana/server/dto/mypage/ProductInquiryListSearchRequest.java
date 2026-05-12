@@ -7,21 +7,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class InquiryListSearchRequest implements AuthAware {
-    private String userId;
-    private Long productId;
-    private LocalDate startDate;
-    private LocalDate endDate;
+public class ProductInquiryListSearchRequest implements AuthAware {
+    private Long productId;     // 필수
+    private String userId;      // 서비스에서 주입 (비로그인 시 null)
+    private Role role;        // 서비스에서 주입 (비로그인 시 null)
     private String isAnswered;
-    private Role role;
+    private String excludeSecret; // 비밀글 제외 여부
 
-    // 페이징
     private int page;
     private int size;
     private int offset;
