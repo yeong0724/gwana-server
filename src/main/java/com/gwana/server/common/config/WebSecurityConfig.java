@@ -65,13 +65,17 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers(
                             "/",
-                            "/auth/**",
+                            "/error",
+                            // 인증 불필요: 로그인/토큰재발급/카카오 SSO 로그아웃 리다이렉트
+                            "/auth/kakao/login",
+                            "/auth/token/refresh",
+                            "/auth/oauth2/logout/kakao",
                             "/user/**",
                             "/product/**",
                             "/mypage/search/review/list"
-                    ).permitAll() // root 및 /auth url은 인증 필요없음
+                    ).permitAll()
+                    .requestMatchers("/auth/logout").authenticated() // 로그아웃은 인증 필요
                     .requestMatchers("/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/error").permitAll()
                     .anyRequest().authenticated() // 나머지 요청에 대해서는 인증 처리
                 )
                 .oauth2Login(oauth2 -> oauth2.failureUrl("/login?error=true"))

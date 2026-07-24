@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gwana.server.mapper.RefreshTokenMapper">
+    <resultMap id="refreshTokenResultMap" type="com.gwana.server.dto.token.RefreshToken">
+        <id property="refreshTokenId" column="refresh_token_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="tokenHash" column="token_hash"/>
+        <result property="expiresAt" column="expires_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="modifiedAt" column="modified_at"/>
+        <result property="modifiedBy" column="modified_by"/>
+    </resultMap>
+
+    <insert id="upsert" parameterType="com.gwana.server.dto.token.RefreshToken">
+        INSERT INTO refresh_token (
+            refresh_token_id,
+            user_id,
+            token_hash,
+            expires_at,
+            created_at,
+            created_by,
+            modified_at,
+            modified_by
+        ) VALUES (
+            #{refreshTokenId},
+            #{userId},
+            #{tokenHash},
+            #{expiresAt},
+            #{createdAt},
+            #{createdBy},
+            #{modifiedAt},
+            #{modifiedBy}
+        )
+        ON DUPLICATE KEY UPDATE
+            token_hash  = VALUES(token_hash),
+            expires_at  = VALUES(expires_at),
+            modified_at = NOW()
+    </insert>
+
+    <select id="findByUserId" resultMap="refreshTokenResultMap">
+        SELECT *
+        FROM refresh_token
+        WHERE user_id = #{userId}
+    </select>
+
+    <delete id="deleteByUserId">
+        DELETE FROM refresh_token
+        WHERE user_id = #{userId}
+    </delete>
+</mapper>

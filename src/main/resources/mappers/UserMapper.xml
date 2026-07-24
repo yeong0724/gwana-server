@@ -80,21 +80,24 @@
         )
     </insert>
 
-    <select id="findSocialAccountByProviderId" resultType="com.gwana.server.dto.socialAccount.SocialAccountResponse">
-        SELECT social_account_id as socialAccountId,
-               user_id           as userId,
-               provider_id       as providerId,
-               provider          as provider
-        FROM social_account
-        WHERE provider = #{provider}
-          AND provider_id = #{providerId}
-    </select>
-
-    <select id="selectKakaoProviderId">
-        SELECT provider_id
-        FROM social_account
-        WHERE user_id = #{userId}
-          AND provider = 'kakao'
+    <select id="findUserByProvider" resultType="com.gwana.server.dto.user.SocialUser">
+        SELECT u.user_id,
+               u.customer_key,
+               u.username,
+               u.password,
+               u.email,
+               u.phone,
+               u.profile_image,
+               u.zonecode,
+               u.road_address,
+               u.detail_address,
+               u.role,
+               sa.social_account_id,
+               sa.provider
+        FROM social_account sa
+                 JOIN users u ON u.user_id = sa.user_id
+        WHERE sa.provider = #{provider}
+          AND sa.provider_id = #{providerId}
     </select>
 
     <insert id="createSocialAccount" parameterType="com.gwana.server.dto.socialAccount.SocialAccountRequest">
@@ -103,6 +106,7 @@
             user_id,
             provider_id,
             provider,
+            access_token,
             created_at,
             created_by,
             modified_at,
@@ -112,10 +116,25 @@
             #{userId},
             #{providerId},
             #{provider},
+            #{accessToken},
             #{createdAt},
             #{createdBy},
             #{modifiedAt},
             #{modifiedBy}
         )
     </insert>
+
+    <update id="updateSocialAccessToken">
+        UPDATE social_account
+        SET access_token = #{accessToken},
+            modified_at  = NOW()
+        WHERE social_account_id = #{socialAccountId}
+    </update>
+
+    <select id="findSocialAccessToken" resultType="string">
+        SELECT access_token
+        FROM social_account
+        WHERE user_id = #{userId}
+          AND provider = #{provider}
+    </select>
 </mapper>

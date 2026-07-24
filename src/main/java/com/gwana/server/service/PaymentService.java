@@ -1,6 +1,6 @@
 package com.gwana.server.service;
 
-import com.gwana.server.client.TossPaymentClient;
+import com.gwana.server.client.TossPaymentApi;
 import com.gwana.server.common.enums.ErrorCode;
 import com.gwana.server.common.exception.CommonException;
 import com.gwana.server.common.security.JwtTokenProvider;
@@ -23,7 +23,7 @@ import java.util.List;
 public class PaymentService {
     private final JwtTokenProvider jwtTokenProvider;
     private final PaymentMapper paymentMapper;
-    private final TossPaymentClient tossPaymentClient;
+    private final TossPaymentApi tossPaymentApi;
 
     public String createPaymentSession(List<PaymentSessionRequest> paymentSessionRequestList) {
         AuthUser authUser = jwtTokenProvider.getUserInfo();
@@ -105,6 +105,6 @@ public class PaymentService {
                 .amount(amount)
                 .build();
 
-        return tossPaymentClient.confirmPayment(request);
+        return tossPaymentApi.confirm(request);
     }
 }

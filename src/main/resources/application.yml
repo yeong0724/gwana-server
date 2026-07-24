@@ -69,6 +69,11 @@ toss:
   secret-key: "${TOSS_SECRET_KEY:test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6}"
   api-url: https://api.tosspayments.com
 
+# 선언형 HTTP 클라이언트(@HttpExchange) baseUrl
+kakao:
+  auth-base-url: https://kauth.kakao.com   # 토큰 발급
+  api-base-url: https://kapi.kakao.com      # 사용자정보/로그아웃
+
 mybatis:
   mapper-locations: classpath:mappers/*.xml
   configuration:

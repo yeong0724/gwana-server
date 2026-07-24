@@ -2,8 +2,6 @@ package com.gwana.server.service;
 
 import com.gwana.server.common.enums.Role;
 import com.gwana.server.common.exception.UserException;
-import com.gwana.server.dto.socialAccount.SocialAccountRequest;
-import com.gwana.server.dto.socialAccount.SocialAccountResponse;
 import com.gwana.server.dto.user.SocialUser;
 import com.gwana.server.dto.user.UserDto;
 import com.gwana.server.dto.user.UserSignupRequest;
@@ -13,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -31,8 +28,8 @@ public class UserService {
 			throw new UserException.UserAlreadyExistException();
 		}
 
-		UserDto user = RequestToDto(userSignupRequest);
-		int result =  userMapper.createUser(user);
+		UserDto user = requestToDto(userSignupRequest);
+		int result = userMapper.createUser(user);
 
 		if (result <= 0) {
 			throw new UserException.UserCreateException();
@@ -41,47 +38,19 @@ public class UserService {
 		return user;
 	}
 
-	@Transactional
-	public UserDto createUserByKakao(UserSignupRequest userSignupRequest) {
-		return userMapper.findUserByEmail(userSignupRequest.getEmail())
-				.orElseGet(() -> {
-					UserDto user = RequestToDto(userSignupRequest);
-					int result = userMapper.createUser(user);
-
-					if (result <= 0) {
-						throw new UserException.UserCreateException();
-					}
-
-					return user;
-				});
-	}
-
-	@Transactional
-	public void createKakaoIfNoAccountInfo(SocialAccountRequest socialAccountRequest) {
-		Long providerId = socialAccountRequest.getProviderId();
-		String provider = socialAccountRequest.getProvider();
-
-		Optional<SocialAccountResponse> socialAccount = userMapper.findSocialAccountByProviderId(providerId, provider);
-
-		if (socialAccount.isEmpty()) {
-			int result = userMapper.createSocialAccount(socialAccountRequest);
-			if (result <= 0) throw new UserException.UserCreateException();
-		}
-	}
-
-	@Transactional
+	@Transactional(readOnly = true)
 	public UserDto findUserByEmail(String email) {
 		return userMapper.findUserByEmail(email)
 				.orElseThrow(UserException.UserNotExistException::new);
 	}
 
-	@Transactional
+	@Transactional(readOnly = true)
 	public SocialUser findUserByUserId(String userId) {
 		return userMapper.findUserByUserId(userId)
 				.orElseThrow(UserException.UserNotExistException::new);
 	}
 
-	private UserDto RequestToDto(UserSignupRequest userSignupRequest) {
+	private UserDto requestToDto(UserSignupRequest userSignupRequest) {
 		return UserDto.builder()
 				.userId(TSID.Factory.getTsid().toString())
 				.customerKey(UUID.randomUUID().toString())

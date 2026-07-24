@@ -4,6 +4,7 @@ package com.gwana.server.common.security;
 import com.gwana.server.dto.user.AuthUser;
 import com.gwana.server.dto.user.SocialUser;
 import com.gwana.server.service.TokenService;
+import com.gwana.server.service.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
@@ -34,6 +35,7 @@ import java.util.Optional;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final TokenService tokenService;
+	private final UserService userService;
 	private final HandlerExceptionResolver handlerExceptionResolver;
 
 	/**
@@ -44,10 +46,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) {
 		String path = request.getRequestURI();
+		// 인증이 필요없는 경로만 필터를 건너뛴다. (/auth/logout 은 인증이 필요하므로 제외)
 		return request.getMethod().equals("OPTIONS")
 				|| path.startsWith("/user/")
-				|| path.startsWith("/auth/")
 				|| path.startsWith("/product/")
+				|| path.equals("/auth/kakao/login")
+				|| path.equals("/auth/token/refresh")
+				|| path.equals("/auth/oauth2/logout/kakao")
 				|| path.equals("/mypage/search/review/list");
 	}
 
@@ -64,7 +69,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		String accessToken = resolveToken(request);
 		try {
 			if (accessToken != null && tokenService.validateToken(accessToken)) {
-				SocialUser socialUser = tokenService.findUserByAccessToken(accessToken);
+				String userId = tokenService.parseUserId(accessToken);
+				SocialUser socialUser = userService.findUserByUserId(userId);
 				Authentication authentication = getAuthentication(socialUser);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			}

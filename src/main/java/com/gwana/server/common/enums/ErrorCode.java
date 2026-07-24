@@ -9,6 +9,8 @@ public enum ErrorCode {
     USER_ALREADY_EXIST("2000", "사용자가 이미 존재합니다."),
     USER_DOES_NOT_EXIST("2001", "사용자가 존재하지 않습니다."),
     USER_CREATE_FAILED("2002", "사용자 생성에 실패하였습니다."),
+    KAKAO_EMAIL_REQUIRED("2003", "카카오 이메일 제공에 동의해야 로그인할 수 있습니다."),
+    EMAIL_ALREADY_REGISTERED("2004", "이미 가입된 이메일입니다. 기존 계정으로 로그인해주세요."),
     INQUIRY_CREATE_FAILED("3000", "문의 등록에 실패하였습니다."),
     REVIEW_CREATE_FAILED("3001", "리뷰 등록에 실패하였습니다."),
     REVIEW_STAT_UPSERT_FAILED("3002", "리뷰 통계 갱신에 실패하였습니다."),
