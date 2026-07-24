@@ -1,6 +1,7 @@
 package com.gwana.server.dto.mypage;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.gwana.server.common.annotation.EmailMasking;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,6 +39,7 @@ public class Inquiry {
     private String phone;
 
     // 이메일
+    @EmailMasking
     private String email;
 
     private boolean canView;
