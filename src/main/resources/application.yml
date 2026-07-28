@@ -83,6 +83,17 @@ server:
   address: 0.0.0.0  # 모든 IP에서 접근 허용
   port: 8080
 
+# API 문서 (springdoc-openapi)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method   # HTTP 메서드 순 정렬
+    tags-sorter: alpha          # 태그 알파벳 정렬
+    display-request-duration: true
+  default-produces-media-type: application/json
+
 logging:
   level:
     root: INFO

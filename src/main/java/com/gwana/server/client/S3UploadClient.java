@@ -1,6 +1,7 @@
 package com.gwana.server.client;
 
 import com.gwana.server.common.exception.CustomException;
+import com.gwana.server.common.utils.Validate;
 import io.hypersistence.tsid.TSID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,25 +29,21 @@ public class S3UploadClient {
 
     /**
      * 이미지 업로드
+     * @param contentType 검증 단계에서 실제 바이트로 판별된 MIME 타입 (확장자/Content-Type 모두 이 값 기준)
      */
-    public String uploadImage(MultipartFile file, String folder) {
-        String originalFilename = file.getOriginalFilename();
-        String extension = "";
-
-        if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
-
+    public String uploadImage(MultipartFile file, String folder, String contentType) {
+        // 확장자는 원본 파일명이 아니라 판별된 MIME 기준으로 결정 (위장 확장자 방지)
+        String extension = Validate.extensionForMime(contentType);
         String fileName = folder + "/" + TSID.Factory.getTsid() + extension;
 
         try {
             PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(bucket)
                     .key(fileName)
-                    .contentType(file.getContentType())
+                    .contentType(contentType)
                     .build();
 
-            s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
+            s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
             return fileName;
         } catch (IOException e) {
@@ -73,7 +70,8 @@ public class S3UploadClient {
         try {
             s3Client.deleteObject(request);
         } catch (RuntimeException e) {
-            throw new CustomException(S3_SERVER_ERROR.getCode(), e.getMessage());
+            log.error("S3 이미지 삭제 실패: {}", e.getMessage());
+            throw new CustomException(S3_SERVER_ERROR.getCode(), S3_SERVER_ERROR.getMessage());
         }
     }
 

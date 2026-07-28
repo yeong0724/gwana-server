@@ -53,11 +53,14 @@ public class ProductService {
                 .build();
     }
 
-    public String uploadProductImage(MultipartFile multipartFile, String folderPath, long maxFileSize) {
-        long MAX_FILE_SIZE = maxFileSize * 1024 * 1024;
-        Validate.validateFile(multipartFile, MAX_FILE_SIZE);
+    // 업로드 제한은 서버에서 고정 (클라이언트가 조정 불가)
+    private static final long PRODUCT_IMAGE_MAX_SIZE = 3 * 1024 * 1024;
 
-        return s3UploadClient.uploadImage(multipartFile, folderPath);
+    public String uploadProductImage(MultipartFile multipartFile, String folderPath) {
+        String contentType = Validate.validateFile(multipartFile, PRODUCT_IMAGE_MAX_SIZE);
+        String safeFolder = Validate.validateFolderPath(folderPath);
+
+        return s3UploadClient.uploadImage(multipartFile, safeFolder, contentType);
     }
 
     public void createProduct(ProductUpdateRequest productUpdateRequest) {

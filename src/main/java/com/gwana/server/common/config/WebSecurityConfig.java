@@ -66,6 +66,11 @@ public class WebSecurityConfig {
                     .requestMatchers(
                             "/",
                             "/error",
+                            // API 문서 (Swagger UI / OpenAPI)
+                            "/swagger-ui/**",
+                            "/swagger-ui.html",
+                            "/v3/api-docs/**",
+                            "/v3/api-docs.yaml",
                             // 인증 불필요: 로그인/토큰재발급/카카오 SSO 로그아웃 리다이렉트
                             "/auth/kakao/login",
                             "/auth/token/refresh",

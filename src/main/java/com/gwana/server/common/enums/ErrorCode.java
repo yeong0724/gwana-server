@@ -28,7 +28,9 @@ public enum ErrorCode {
     FILE_UPLOAD_FAILED("6005", "파일 업로드에 실패했습니다."),
     S3_SERVER_ERROR("6006", "파일 서버에 오류가 발생했습니다."),
     S3_CONNECTION_ERROR("6007", "파일 서버 연결에 실패했습니다."),
-    FILE_COUNT_EXCEEDED("6008", "업로드 허용 개수를 초과했습니다.");
+    FILE_COUNT_EXCEEDED("6008", "업로드 허용 개수를 초과했습니다."),
+    INVALID_FOLDER_PATH("6009", "허용되지 않는 업로드 경로입니다."),
+    INVALID_IMAGE_REFERENCE("6010", "유효하지 않은 이미지 참조입니다.");
 
     private final String code;
     private final String message;

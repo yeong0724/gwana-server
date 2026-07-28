@@ -13,6 +13,9 @@ import com.gwana.server.service.AuthService;
 import com.gwana.server.service.KakaoAuthService;
 import com.gwana.server.service.TokenService;
 import com.gwana.server.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +32,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Tag(name = "인증", description = "로그인 / 토큰 재발급 / 로그아웃")
 public class AuthController {
     private final KakaoAuthService kakaoAuthService;
     private final AuthService authService;
@@ -49,6 +53,7 @@ public class AuthController {
     /**
      * 카카오 로그인: 인가 코드로 로그인/회원가입을 처리하고 Access Token 반환 + Refresh Token 쿠키 설정.
      */
+    @Operation(summary = "카카오 로그인", description = "인가 코드로 로그인/회원가입 처리 후 Access Token 반환 + Refresh Token 쿠키 설정")
     @PostMapping("/kakao/login")
     public ApiResponse<LoginResponse> kakaoLogin(
             @RequestBody KakaoLoginRequest request,
@@ -62,6 +67,7 @@ public class AuthController {
     /**
      * Access Token 재발급: Refresh Token 쿠키만으로 검증·회전한다.
      */
+    @Operation(summary = "Access Token 재발급", description = "Refresh Token 쿠키만으로 검증·회전하여 새 Access Token 발급")
     @PostMapping("/token/refresh")
     public ApiResponse<LoginResponse> refresh(
             @CookieValue(name = "refreshToken", required = false) String refreshToken,
@@ -78,6 +84,8 @@ public class AuthController {
      * 로그아웃: 서버 Refresh Token 폐기 + 카카오 로그아웃(best-effort) + 쿠키 제거.
      * 인증된 사용자만 호출 가능(Bearer Access Token 필요).
      */
+    @Operation(summary = "로그아웃", description = "Refresh Token 폐기 + 카카오 로그아웃(best-effort) + 쿠키 제거 (Bearer 필요)")
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
     public ApiResponse<Void> logout(HttpServletResponse response) {
         AuthUser authUser = jwtTokenProvider.getUserInfo();
@@ -91,6 +99,7 @@ public class AuthController {
     /**
      * 카카오 SSO 로그아웃 페이지로 리다이렉트(브라우저 레벨 로그아웃). 완료 후 프론트 로그아웃 페이지로 복귀한다.
      */
+    @Operation(summary = "카카오 SSO 로그아웃 리다이렉트", description = "카카오 로그아웃 페이지로 302 리다이렉트")
     @GetMapping("/oauth2/logout/kakao")
     public void kakaoLogoutRedirect(HttpServletResponse response) {
         String kakaoLogoutUrl = UriComponentsBuilder.fromUriString(kakaoLogoutUri)

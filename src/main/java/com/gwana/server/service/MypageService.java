@@ -20,6 +20,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,9 +37,18 @@ public class MypageService {
     private final MypageMapper mypageMapper;
     private final UserService userService;
 
+    // 업로드 제한은 서버에서 고정 (클라이언트가 조정 불가)
+    private static final long PROFILE_IMAGE_MAX_SIZE = 2 * 1024 * 1024;
+    private static final long TEMP_IMAGE_MAX_SIZE = 5 * 1024 * 1024;
+    private static final long IMAGES_MAX_SIZE = 3 * 1024 * 1024;
+    private static final int IMAGES_MAX_COUNT = 5;
+
+    // 문의 임시 이미지 키 형식: temp/inquiry/<파일명>.<확장자> 만 허용 (하위경로/상위이동 차단)
+    private static final Pattern INQUIRY_TEMP_KEY_PATTERN =
+            Pattern.compile("^temp/inquiry/[A-Za-z0-9_-]+\\.[A-Za-z0-9]+$");
+
     public String uploadProfileImage(MultipartFile multipartFile, String prevProfileImage) {
-        long maxFileSize = 2 * 1024 * 1024;
-        Validate.validateFile(multipartFile, maxFileSize);
+        String contentType = Validate.validateFile(multipartFile, PROFILE_IMAGE_MAX_SIZE);
 
         if (StringUtils.hasText(prevProfileImage)) {
             try {
@@ -49,29 +59,41 @@ public class MypageService {
         }
 
         String folderName = "images/profile";
-        return s3UploadClient.uploadImage(multipartFile, folderName);
+        return s3UploadClient.uploadImage(multipartFile, folderName, contentType);
     }
 
     public String uploadTempImage(MultipartFile multipartFile, String folderPath) {
-        long maxFileSize = 5 * 1024 * 1024;
-        Validate.validateFile(multipartFile, maxFileSize);
-        return s3UploadClient.uploadImage(multipartFile, folderPath);
+        String contentType = Validate.validateFile(multipartFile, TEMP_IMAGE_MAX_SIZE);
+        String safeFolder = Validate.validateFolderPath(folderPath);
+        return s3UploadClient.uploadImage(multipartFile, safeFolder, contentType);
     }
 
-    public List<String> uploadImages(List<MultipartFile> multipartFiles, String folderPath, long maxFileSize, int maxFileCount) {
-        long MAX_FILE_SIZE = maxFileSize * 1024 * 1024;
-
-        for (MultipartFile multipartFile : multipartFiles) {
-            Validate.validateFile(multipartFile, MAX_FILE_SIZE);
+    public List<String> uploadImages(List<MultipartFile> multipartFiles, String folderPath) {
+        if (multipartFiles.size() > IMAGES_MAX_COUNT) {
+            throw new CustomException(FILE_COUNT_EXCEEDED.getCode(), "이미지는 최대 " + IMAGES_MAX_COUNT + "개까지 업로드 가능합니다.");
         }
 
-        if (multipartFiles.size() > maxFileCount) {
-            throw new CustomException(FILE_COUNT_EXCEEDED.getCode(), "이미지는 최대 " + maxFileCount + "개까지 업로드 가능합니다.");
+        String safeFolder = Validate.validateFolderPath(folderPath);
+
+        // 순차 업로드 + 부분 실패 시 이미 올라간 파일 정리 (고아 객체 방지, 공용 스레드풀 사용 회피)
+        List<String> uploadedKeys = new ArrayList<>();
+        try {
+            for (MultipartFile multipartFile : multipartFiles) {
+                String contentType = Validate.validateFile(multipartFile, IMAGES_MAX_SIZE);
+                uploadedKeys.add(s3UploadClient.uploadImage(multipartFile, safeFolder, contentType));
+            }
+        } catch (RuntimeException e) {
+            for (String key : uploadedKeys) {
+                try {
+                    s3UploadClient.deleteImage(key);
+                } catch (Exception ignore) {
+                    log.warn("업로드 롤백 중 삭제 실패: {}", key);
+                }
+            }
+            throw e;
         }
 
-        return multipartFiles.parallelStream()
-                .map(file -> s3UploadClient.uploadImage(file, folderPath))
-                .toList();
+        return uploadedKeys;
     }
 
     public MyinfoUpdateResponse updateMyinfo(MyinfoUpdateRequest myinfoUpdateRequest) {
@@ -103,6 +125,12 @@ public class MypageService {
             String fullUrl = matcher.group(1);
 
             String tempKey = fullUrl.substring(fullUrl.indexOf("temp/inquiry/"));
+
+            // 사용자 본문에서 추출한 키를 그대로 신뢰하지 않고 형식 검증 (임의 객체 복사 방지)
+            if (!INQUIRY_TEMP_KEY_PATTERN.matcher(tempKey).matches()) {
+                throw new CustomException(INVALID_IMAGE_REFERENCE.getCode(), INVALID_IMAGE_REFERENCE.getMessage());
+            }
+
             String newKey = s3UploadClient.moveImage(tempKey, "images/inquiry");
             content = content.replace(tempKey, newKey);
         }

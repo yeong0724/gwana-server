@@ -49,7 +49,7 @@ public class GlobalExceptionAdvice {
     protected ResponseEntity<?> handleRuntimeException(RuntimeException runtimeException) {
         log.error("RuntimeException :", runtimeException);
         // return ResponseEntity.status(500).body(ApiResponse.fail(DEFAULT_ERROR));
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.generalFail("1000", runtimeException.getMessage()));
+        return ResponseEntity.status(500).body(ApiResponse.generalFail("1000", runtimeException.getMessage()));
     }
 
     @ExceptionHandler(MyBatisSystemException.class)
