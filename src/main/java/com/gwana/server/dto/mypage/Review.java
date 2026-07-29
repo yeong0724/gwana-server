@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -24,8 +25,8 @@ public class Review {
     // 리뷰 내용
     private String content;
 
-    // 리뷰 사진
-    private String[] reviewImages;
+    // 리뷰 사진 (product_review_image 조회 결과)
+    private List<String> reviewImages;
 
     // 리뷰 별점
     private BigDecimal rating;

@@ -176,17 +176,22 @@ public class MypageService {
     }
 
     public void createReview(ReviewCreateRequest reviewCreateRequest) {
-        int reviewCreateResult = mypageMapper.insertReview(reviewCreateRequest);
+        AuthUser authUser = jwtTokenProvider.getUserInfo();
+        reviewCreateRequest.setUserId(authUser.getUserId());
 
+        int reviewCreateResult = mypageMapper.insertReview(reviewCreateRequest);
         if (reviewCreateResult <= 0) {
             throw new CommonException(REVIEW_CREATE_FAILED);
         }
 
-        int result = mypageMapper.upsertReviewStats(reviewCreateRequest);
-
-        if (result <= 0) {
-            throw new CommonException(REVIEW_STAT_UPSERT_FAILED);
+        String[] images = reviewCreateRequest.getReviewImages();
+        if (images != null) {
+            for (int i = 0; i < images.length; i++) {
+                mypageMapper.insertReviewImage(reviewCreateRequest.getProductReviewId(), images[i], i);
+            }
         }
+
+        mypageMapper.recomputeReviewStats(reviewCreateRequest.getProductId());
     }
 
     public InfiniteResponse<List<Review>> searchReviewList(ReviewListSearchRequest reviewListSearchRequest) {
@@ -208,6 +213,11 @@ public class MypageService {
 
         boolean hasNext = (long) (page + 1) * size < totalCount;
         List<Review> list = mypageMapper.selectReviewList(reviewListSearchRequest);
+
+        // 리뷰별 이미지 로드
+        for (Review review : list) {
+            review.setReviewImages(mypageMapper.selectReviewImages(review.getReviewId()));
+        }
 
         return InfiniteResponse.<List<Review>>builder()
                 .data(list)

@@ -9,54 +9,49 @@
     </select>
 
     <insert id="insertCart" parameterType="com.gwana.server.dto.cart.UpsertCartRequest" useGeneratedKeys="true" keyProperty="cartId">
-        INSERT INTO cart (
-            product_id,
-            user_id,
-            created_at,
-            created_by
-        ) VALUES (
-            #{productId},
-            #{userId},
-            #{createdAt},
-            #{createdBy}
-        )
+        INSERT INTO cart (product_id, user_id, created_at, created_by)
+        VALUES (#{productId}, #{userId}, NOW(), #{userId})
     </insert>
 
     <insert id="upsertCartItem" parameterType="com.gwana.server.dto.cart.UpsertCartItemRequest">
         <![CDATA[
-            INSERT INTO cart_item (cart_id, product_option_id, quantity)
-            VALUES (#{cartId}, #{productOptionId}, #{quantity})
+            INSERT INTO cart_item (cart_id, product_variant_id, quantity)
+            VALUES (#{cartId}, #{productVariantId}, #{quantity})
             ON DUPLICATE KEY UPDATE quantity = quantity + #{quantity}
         ]]>
     </insert>
 
-    <!-- Cart Search By UserId -->
+    <!-- 장바구니 목록 (상품 단위) -->
     <select id="selectCartList" resultType="com.gwana.server.dto.cart.Cart">
-        SELECT c.cart_id,
-               c.product_id,
-               p.product_name,
-               p.category_id,
-               p.category_name,
-               p.price,
-               p.shipping_price,
-               p.images
-        FROM cart c LEFT JOIN product p ON c.product_id = p.product_id
-        WHERE user_id = #{userId}
+        SELECT c.cart_id       AS cartId,
+               c.product_id    AS productId,
+               p.name          AS name,
+               p.category_id   AS categoryId,
+               cat.name        AS categoryName,
+               p.shipping_price AS shippingPrice,
+               (SELECT pi.url FROM product_image pi
+                 WHERE pi.product_id = p.product_id AND pi.image_type = 'GALLERY'
+                 ORDER BY pi.sort_order LIMIT 1) AS thumbnailUrl
+        FROM cart c
+            LEFT JOIN product p   ON c.product_id = p.product_id
+            LEFT JOIN category cat ON cat.category_id = p.category_id
+        WHERE c.user_id = #{userId}
     </select>
 
+    <!-- 장바구니 항목 (variant 단위) -->
     <select id="selectCartItemList" resultType="com.gwana.server.dto.cart.CartItem">
-        SELECT ci.cart_item_id,
-               ci.cart_id,
-               ci.quantity,
-               ci.product_option_id,
-               po.product_id,
-               po.option_name,
-               po.option_price,
-               po.is_required,
-               po.is_quantity_adjustable
-        FROM cart_item ci LEFT JOIN product_option po ON ci.product_option_id = po.product_option_id
+        SELECT ci.cart_item_id       AS cartItemId,
+               ci.cart_id            AS cartId,
+               ci.quantity           AS quantity,
+               ci.product_variant_id AS productVariantId,
+               v.product_id          AS productId,
+               v.option_label        AS optionLabel,
+               v.price               AS price,
+               v.status              AS status
+        FROM cart_item ci
+            LEFT JOIN product_variant v ON ci.product_variant_id = v.product_variant_id
         WHERE ci.cart_id = #{cartId}
-        ORDER BY po.is_required DESC, po.option_name
+        ORDER BY v.sort_order, v.option_label
     </select>
 
     <delete id="deleteCartItem" parameterType="com.gwana.server.dto.cart.CartItemDeleteRequest">

@@ -59,10 +59,7 @@ public class PaymentService {
             totalShippingPrice += shippingPrice;
         }
 
-        // 합계 주문 금액이 50,000원 이상시 배송비 무료
-        if (totalPrice >= 50000) {
-            totalShippingPrice = 0;
-        }
+        // 배송비는 상품별 shipping_price(0=무료) 기준. (기존 5만원 무료 하드코딩 제거)
 
         return PaymentSessionResponse.builder()
                 .items(PaymentSessionList)

@@ -13,13 +13,13 @@
     <insert id="createPaymentSession" parameterType="com.gwana.server.dto.payment.PaymentSessionRequest">
         INSERT INTO payment_session (
             session_id,
-            product_id,
+            product_variant_id,
             quantity,
             user_id,
             expires_at
         ) VALUES (
             #{sessionId},
-            #{productId},
+            #{productVariantId},
             #{quantity},
             #{userId},
             #{expiresAt}
@@ -27,16 +27,23 @@
     </insert>
 
     <select id="getPaymentSession" resultType="com.gwana.server.dto.payment.PaymentSession">
-        SELECT ps.product_id,
-               ps.quantity,
-               p.product_name,
-               p.category_name,
-               p.price,
-               p.shipping_price,
-               p.images
-        FROM payment_session ps LEFT JOIN product p ON ps.product_id = p.product_id
-        WHERE session_id = #{sessionId}
-          AND expires_at > CURRENT_TIMESTAMP
+        SELECT ps.product_variant_id AS productVariantId,
+               v.product_id          AS productId,
+               p.name                AS productName,
+               cat.name              AS categoryName,
+               v.option_label        AS optionLabel,
+               ps.quantity           AS quantity,
+               v.price               AS price,
+               p.shipping_price      AS shippingPrice,
+               (SELECT pi.url FROM product_image pi
+                 WHERE pi.product_id = p.product_id AND pi.image_type = 'GALLERY'
+                 ORDER BY pi.sort_order LIMIT 1) AS thumbnailUrl
+        FROM payment_session ps
+            LEFT JOIN product_variant v ON ps.product_variant_id = v.product_variant_id
+            LEFT JOIN product p         ON v.product_id = p.product_id
+            LEFT JOIN category cat      ON cat.category_id = p.category_id
+        WHERE ps.session_id = #{sessionId}
+          AND ps.expires_at > CURRENT_TIMESTAMP
     </select>
 
     <insert id="upsertPaymentInfo" parameterType="com.gwana.server.dto.payment.PaymentInfoRequest">

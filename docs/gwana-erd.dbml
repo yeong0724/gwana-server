@@ -1,0 +1,230 @@
+// =====================================================================
+// Gwana ERD (DBML) — dbdiagram.io 왼쪽 에디터에 통째로 붙여넣기
+// 대상: gwana-local-db (MySQL 8.0)  /  2026-07-28
+// 실제 DB엔 물리 FK가 없음. 아래 Ref 는 논리 관계 시각화용.
+// =====================================================================
+
+Enum user_role {
+  ADMIN
+  GENERAL
+}
+
+Table users {
+  user_id        varchar(100) [pk]
+  customer_key   varchar(100) [not null]
+  username       varchar(50)  [not null]
+  password       varchar(255) [note: '소셜 전용이면 NULL']
+  email          varchar(100) [unique, note: 'NULL 허용, 전역 UNIQUE']
+  phone          varchar(20)
+  profile_image  varchar(100)
+  zonecode       varchar(20)
+  road_address   varchar(100)
+  detail_address varchar(300)
+  role           user_role    [not null, default: 'GENERAL']
+  created_at     datetime
+  created_by     varchar(50)
+  modified_at    datetime
+  modified_by    varchar(50)
+}
+
+Table social_account {
+  social_account_id       varchar(100) [pk]
+  user_id                 varchar(100) [not null]
+  provider                varchar(50)  [not null]
+  provider_id             bigint       [not null]
+  access_token            text         [note: '소셜 access token']
+  access_token_expires_at datetime
+  created_at              datetime
+  created_by              varchar(50)
+  modified_at             datetime
+  modified_by             varchar(50)
+
+  indexes {
+    (provider, provider_id) [unique]
+  }
+}
+
+Table refresh_token {
+  refresh_token_id varchar(100) [pk]
+  user_id          varchar(100) [unique, note: '사용자당 1행']
+  token_hash       char(64)     [not null, note: 'Refresh 원문 SHA-256']
+  expires_at       datetime     [not null]
+  created_at       datetime
+  created_by       varchar(50)
+  modified_at      datetime
+  modified_by      varchar(50)
+}
+
+Table product {
+  product_id     bigint       [pk, increment]
+  product_name   varchar(255) [not null]
+  category_id    varchar(100) [not null]
+  category_name  varchar(50)  [not null]
+  images         json
+  infos          json
+  price          int          [not null]
+  shipping_price int
+  created_at     datetime
+  created_by     varchar(50)
+  modified_at    datetime
+  modified_by    varchar(50)
+}
+
+Table product_option {
+  product_option_id      bigint       [pk, increment]
+  product_id             bigint
+  option_name            varchar(100) [not null]
+  option_price           int          [default: 0]
+  is_required            boolean      [default: true]
+  is_quantity_adjustable boolean      [default: true]
+}
+
+Table product_review_stats {
+  product_id   bigint       [pk, note: 'product 와 1:1']
+  avg_rating   "decimal(2,1)" [not null, default: 0]
+  review_count int          [not null, default: 0]
+}
+
+Table review {
+  review_id     bigint       [pk, increment]
+  product_id    varchar(50)  [not null, note: 'TYPE MISMATCH: product.product_id 는 bigint']
+  content       varchar(500) [not null]
+  review_images json
+  rating        "decimal(2,1)" [not null, default: 0]
+  created_at    datetime
+  created_by    varchar(50)
+  modified_at   datetime
+  modified_by   varchar(50)
+}
+
+Table inquiry {
+  inquiry_id       bigint       [pk, increment]
+  upper_inquiry_id bigint       [note: 'self: 답변 대상 문의글']
+  product_id       varchar(50)  [note: 'TYPE MISMATCH: product.product_id 는 bigint']
+  title            varchar(200) [not null]
+  content          text         [not null]
+  is_secret        char(1)      [not null, default: 'N']
+  is_answered      char(1)      [default: 'N']
+  created_at       datetime
+  created_by       varchar(50)
+  modified_at      datetime
+  modified_by      varchar(50)
+}
+
+Table cart {
+  cart_id     bigint      [pk, increment]
+  product_id  bigint      [not null]
+  user_id     varchar(50) [not null]
+  created_at  datetime
+  created_by  varchar(50)
+  modified_at datetime
+  modified_by varchar(50)
+
+  indexes {
+    (user_id, product_id) [unique]
+  }
+}
+
+Table cart_item {
+  cart_item_id      bigint      [pk, increment]
+  cart_id           bigint      [not null]
+  product_option_id varchar(50) [not null, note: 'TYPE MISMATCH: product_option_id 는 bigint']
+  quantity          int         [not null, default: 1]
+
+  indexes {
+    (cart_id, product_option_id) [unique]
+  }
+}
+
+// 주의: 실제 orders 에는 PK 가 없음(검토 대상). 다이어그램상 order_id 를 PK 로 표시.
+Table orders {
+  order_id                varchar(100) [pk]
+  order_status            varchar(20)  [not null]
+  product_amount          int          [not null, default: 0]
+  shipping_fee            int          [not null, default: 0]
+  discount_amount         int          [not null, default: 0]
+  total_amount            int          [not null, default: 0]
+  created_at              datetime
+  created_by              varchar(50)  [note: '주문자 user_id (전용 user_id 컬럼 없음)']
+  sender_name             varchar(100)
+  sender_phone            varchar(20)
+  recipient_name          varchar(100)
+  recipient_phone         varchar(20)
+  zonecode                varchar(10)
+  road_address            varchar(255)
+  detail_address          varchar(255)
+  delivery_request        varchar(500)
+  delivery_request_detail varchar(500)
+  ordered_at              datetime
+  paid_at                 datetime
+  cancelled_at            datetime
+  refunded_at             datetime
+  modified_at             datetime
+  modified_by             varchar(50)
+}
+
+Table order_items {
+  order_item_id         bigint       [pk, increment]
+  order_id              varchar(100) [not null]
+  product_id            bigint       [not null]
+  product_name          varchar(255) [not null]
+  product_thumbnail_url varchar(255) [not null]
+  category_name         varchar(50)  [not null]
+  product_option_id     bigint       [not null]
+  option_name           varchar(100) [not null]
+  option_price          int          [not null, default: 0]
+  quantity              int          [not null, default: 0]
+  is_required           boolean      [default: true]
+}
+
+Table payment_info {
+  session_id              varchar(50)  [pk]
+  order_id                varchar(50)  [not null, note: 'TYPE MISMATCH: orders.order_id 는 varchar(100)']
+  user_id                 varchar(50)  [not null]
+  total_price             int          [not null]
+  total_shipping_price    int          [not null]
+  total_amount            int          [not null]
+  sender_name             varchar(100) [not null]
+  sender_phone            varchar(20)  [not null]
+  recipient_name          varchar(100) [not null]
+  recipient_phone         varchar(20)  [not null]
+  zonecode                varchar(10)  [not null]
+  road_address            varchar(255) [not null]
+  detail_address          varchar(255) [not null]
+  delivery_request        varchar(500) [not null]
+  delivery_request_detail varchar(500)
+  expires_at              datetime     [not null]
+}
+
+Table payment_session {
+  payment_session_id bigint      [pk, increment]
+  session_id         varchar(50) [not null]
+  product_id         varchar(50) [not null, note: 'TYPE MISMATCH: product.product_id 는 bigint']
+  quantity           int         [not null, default: 0]
+  user_id            varchar(50) [not null]
+  expires_at         datetime    [not null]
+}
+
+// ---------------------------------------------------------------------
+// 관계 (논리) —  > : many-to-one,  - : one-to-one
+// ---------------------------------------------------------------------
+Ref: social_account.user_id > users.user_id
+Ref: refresh_token.user_id - users.user_id
+Ref: product_option.product_id > product.product_id
+Ref: product_review_stats.product_id - product.product_id
+Ref: cart.user_id > users.user_id
+Ref: cart.product_id > product.product_id
+Ref: cart_item.cart_id > cart.cart_id
+Ref: cart_item.product_option_id > product_option.product_option_id
+Ref: review.product_id > product.product_id
+Ref: inquiry.product_id > product.product_id
+Ref: inquiry.upper_inquiry_id > inquiry.inquiry_id
+Ref: orders.created_by > users.user_id
+Ref: order_items.order_id > orders.order_id
+Ref: order_items.product_id > product.product_id
+Ref: order_items.product_option_id > product_option.product_option_id
+Ref: payment_info.user_id > users.user_id
+Ref: payment_info.order_id > orders.order_id
+Ref: payment_session.session_id > payment_info.session_id
+Ref: payment_session.user_id > users.user_id
+Ref: payment_session.product_id > product.product_id

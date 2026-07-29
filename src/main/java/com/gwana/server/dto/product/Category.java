@@ -9,6 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductOptionDeleteRequest {
-    private Long productOptionId;
+public class Category {
+    private Long categoryId;
+    private Long parentId;
+    private String name;
+    private String slug;
+    private Integer depth;
+    private Integer sortOrder;
 }

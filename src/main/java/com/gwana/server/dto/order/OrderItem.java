@@ -22,7 +22,7 @@ public class OrderItem {
 
     private String categoryName;
 
-    private Long productOptionId;
+    private Long productVariantId;
 
     private String optionName;
 

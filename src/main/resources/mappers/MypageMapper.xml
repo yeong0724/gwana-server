@@ -122,7 +122,7 @@
                i.created_by,
                u.username,
                u.phone,
-               p.product_name,
+               p.name AS product_name,
                a.title AS answer_title,
                a.content AS answer_content,
                a.created_at AS answer_created_at
@@ -139,61 +139,78 @@
         WHERE inquiry_id = #{inquiryId}
     </update>
 
-    <insert id="insertReview" parameterType="com.gwana.server.dto.mypage.ReviewCreateRequest">
-        INSERT INTO review (
-            product_id,
-            content,
-            review_images,
-            rating,
-            created_at,
-            created_by
-        ) VALUES (
-            #{productId},
-            #{content},
-            #{reviewImages},
-            #{rating},
-            #{createdAt},
-            #{createdBy}
-        )
+    <insert id="insertReview" parameterType="com.gwana.server.dto.mypage.ReviewCreateRequest"
+            useGeneratedKeys="true" keyProperty="productReviewId">
+        INSERT INTO product_review (product_id, product_variant_id, user_id, rating, content, status, created_at)
+        VALUES (#{productId}, #{productVariantId}, #{userId}, #{rating}, #{content}, 'VISIBLE', NOW())
     </insert>
+
+    <insert id="insertReviewImage">
+        INSERT INTO product_review_image (product_review_id, url, sort_order)
+        VALUES (#{productReviewId}, #{url}, #{sortOrder})
+    </insert>
+
+    <select id="selectReviewImages" resultType="string">
+        SELECT url
+        FROM product_review_image
+        WHERE product_review_id = #{productReviewId}
+        ORDER BY sort_order
+    </select>
+
     <select id="selectReviewCount" resultType="com.gwana.server.dto.mypage.ReviewCountResponse">
-        SELECT review_count as totalCount,
-               avg_rating as averageRating
+        SELECT review_count AS totalCount,
+               avg_rating   AS averageRating
         FROM product_review_stats
         WHERE product_id = #{productId}
     </select>
+
     <select id="selectReviewList" resultType="com.gwana.server.dto.mypage.Review">
-        SELECT review_id,
-               product_id,
-               content,
-               review_images,
-               rating,
-               r.created_by,
-               r.created_at,
-               u.email
-        FROM review r LEFT JOIN users u ON u.user_id = r.created_by
-        WHERE product_id = #{productId}
+        SELECT r.product_review_id AS reviewId,
+               r.product_id        AS productId,
+               r.content           AS content,
+               r.rating            AS rating,
+               r.user_id           AS createdBy,
+               r.created_at        AS createdAt,
+               u.email             AS email
+        FROM product_review r
+            LEFT JOIN users u ON u.user_id = r.user_id
+        WHERE r.product_id = #{productId} AND r.status = 'VISIBLE'
         <if test="photoOnly">
-            AND review_images IS NOT NULL
-            AND JSON_LENGTH(review_images) > 0
+            AND EXISTS (SELECT 1 FROM product_review_image i WHERE i.product_review_id = r.product_review_id)
         </if>
         <choose>
             <when test="sortBy == 'recommended'">
-                ORDER BY rating DESC, created_at DESC
+                ORDER BY r.rating DESC, r.created_at DESC
             </when>
             <otherwise>
-                ORDER BY created_at DESC
+                ORDER BY r.created_at DESC
             </otherwise>
         </choose>
         LIMIT #{size} OFFSET #{offset}
     </select>
-    <insert id="upsertReviewStats">
-        <![CDATA[
-            INSERT INTO product_review_stats (product_id, avg_rating, review_count)
-            VALUES (#{productId}, #{rating}, 1)
-            ON DUPLICATE KEY UPDATE
-                avg_rating = ROUND((avg_rating * review_count + #{rating}) / (review_count + 1), 1),
-                review_count = review_count + 1
-        ]]>
-    </insert>
+
+    <update id="recomputeReviewStats">
+        INSERT INTO product_review_stats
+            (product_id, avg_rating, review_count,
+             rating_1_cnt, rating_2_cnt, rating_3_cnt, rating_4_cnt, rating_5_cnt)
+        SELECT r.product_id,
+               ROUND(AVG(r.rating), 1),
+               COUNT(*),
+               SUM(r.rating >= 1 AND r.rating &lt; 2),
+               SUM(r.rating >= 2 AND r.rating &lt; 3),
+               SUM(r.rating >= 3 AND r.rating &lt; 4),
+               SUM(r.rating >= 4 AND r.rating &lt; 5),
+               SUM(r.rating >= 5)
+        FROM product_review r
+        WHERE r.product_id = #{productId} AND r.status = 'VISIBLE'
+        GROUP BY r.product_id
+        ON DUPLICATE KEY UPDATE
+            avg_rating   = VALUES(avg_rating),
+            review_count = VALUES(review_count),
+            rating_1_cnt = VALUES(rating_1_cnt),
+            rating_2_cnt = VALUES(rating_2_cnt),
+            rating_3_cnt = VALUES(rating_3_cnt),
+            rating_4_cnt = VALUES(rating_4_cnt),
+            rating_5_cnt = VALUES(rating_5_cnt)
+    </update>
 </mapper>

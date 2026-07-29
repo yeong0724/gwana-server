@@ -9,6 +9,10 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
+/**
+ * 상품 등록/수정 요청.
+ * 이미지는 갤러리[]/디테일[] URL 리스트 + variant별 썸네일(변형 안에 포함).
+ */
 @Data
 @SuperBuilder
 @AllArgsConstructor
@@ -16,12 +20,15 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class ProductUpdateRequest extends BaseDto {
     private Long productId;
-    private String productName;
-    private String categoryId;
-    private String categoryName;
-    private String[] images;
-    private String[] infos;
-    private Integer price;
+    private Long categoryId;
+    private String name;
+    private String summary;
+    private String detailContent;
+    private String status;
     private Integer shippingPrice;
-    private List<ProductOption> options;
+
+    private List<VariantUpsertRequest> variants;
+    private List<String> galleryUrls;
+    private List<String> detailUrls;
+    private List<Long> addonIds;
 }

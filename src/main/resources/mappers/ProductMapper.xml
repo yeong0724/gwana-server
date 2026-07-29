@@ -1,150 +1,290 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.gwana.server.mapper.ProductMapper">
-    <resultMap id="ProductResultMap" type="com.gwana.server.dto.product.Product">
-        <id property="productId" column="product_id"/>
-        <result property="productName" column="product_name"/>
-        <result property="categoryId" column="category_id"/>
-        <result property="categoryName" column="category_name"/>
-        <result property="images" column="images" />
-        <result property="infos" column="infos" />
-        <result property="price" column="price"/>
-        <result property="shippingPrice" column="shipping_price"/>
-        <result property="avgRating" column="avg_rating"/>
-        <result property="reviewCount" column="review_count"/>
-    </resultMap>
 
-    <select id="selectProductList" resultMap="ProductResultMap">
-        SELECT p.product_id,
-               product_name,
-               category_id,
-               category_name,
-               images,
-               infos,
-               price,
-               shipping_price,
-               COALESCE(prs.avg_rating, 0) AS avg_rating,
-               COALESCE(prs.review_count, 0) AS review_count
-        FROM product p LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
+    <!-- ================= 조회 ================= -->
+
+    <select id="selectProductList" resultType="com.gwana.server.dto.product.Product">
+        SELECT p.product_id       AS productId,
+               p.category_id      AS categoryId,
+               c.slug             AS categorySlug,
+               c.name             AS categoryName,
+               p.name             AS name,
+               p.summary          AS summary,
+               p.status           AS status,
+               p.display_price    AS displayPrice,
+               p.shipping_price   AS shippingPrice,
+               (SELECT pi.url FROM product_image pi
+                 WHERE pi.product_id = p.product_id AND pi.image_type = 'GALLERY'
+                 ORDER BY pi.sort_order LIMIT 1) AS thumbnailUrl,
+               COALESCE(prs.avg_rating, 0)   AS avgRating,
+               COALESCE(prs.review_count, 0) AS reviewCount
+        FROM product p
+            LEFT JOIN category c ON c.category_id = p.category_id
+            LEFT JOIN product_review_stats prs ON prs.product_id = p.product_id
         <where>
-            <if test="categoryId != null and categoryId != ''">
-                category_id = #{categoryId}
+            p.is_deleted = false
+            AND p.status IN ('ON_SALE', 'SOLD_OUT', 'DISCONTINUED')
+            <if test="categorySlug != null and categorySlug != ''">
+                AND c.slug = #{categorySlug}
             </if>
         </where>
+        ORDER BY p.product_id DESC
     </select>
 
-    <select id="selectProduct" resultMap="ProductResultMap">
-        SELECT product_id,
-               product_name,
-               category_id,
-               category_name,
-               images,
-               infos,
-               price,
-               shipping_price
-        FROM product WHERE product_id = #{productId}
+    <!-- 관리자: 전체 상태(임시저장/숨김 포함) 목록. 삭제된 것만 제외 -->
+    <select id="selectAdminProductList" resultType="com.gwana.server.dto.product.Product">
+        SELECT p.product_id       AS productId,
+               p.category_id      AS categoryId,
+               c.slug             AS categorySlug,
+               c.name             AS categoryName,
+               p.name             AS name,
+               p.summary          AS summary,
+               p.status           AS status,
+               p.display_price    AS displayPrice,
+               p.shipping_price   AS shippingPrice,
+               (SELECT pi.url FROM product_image pi
+                 WHERE pi.product_id = p.product_id AND pi.image_type = 'GALLERY'
+                 ORDER BY pi.sort_order LIMIT 1) AS thumbnailUrl,
+               COALESCE(prs.avg_rating, 0)   AS avgRating,
+               COALESCE(prs.review_count, 0) AS reviewCount
+        FROM product p
+            LEFT JOIN category c ON c.category_id = p.category_id
+            LEFT JOIN product_review_stats prs ON prs.product_id = p.product_id
+        <where>
+            p.is_deleted = false
+            <if test="categorySlug != null and categorySlug != ''">
+                AND c.slug = #{categorySlug}
+            </if>
+        </where>
+        ORDER BY p.product_id DESC
     </select>
 
-    <select id="selectProductOption" resultType="com.gwana.server.dto.product.ProductOption">
-        SELECT product_option_id,
-               option_price,
-               option_name,
-               is_required
-        FROM product_option WHERE product_option_id = #{productOptionId}
+    <!-- 관리자: 상품 상태만 변경 (목록에서 즉시 변경) -->
+    <update id="updateProductStatus">
+        UPDATE product
+        SET status     = #{status},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE product_id = #{productId}
+    </update>
+
+    <select id="selectProduct" resultType="com.gwana.server.dto.product.Product">
+        SELECT p.product_id       AS productId,
+               p.name             AS name,
+               p.category_id      AS categoryId,
+               c.name             AS categoryName,
+               p.summary          AS summary,
+               p.detail_content   AS detailContent,
+               p.status           AS status,
+               p.display_price    AS displayPrice,
+               p.shipping_price   AS shippingPrice,
+               (SELECT pi.url FROM product_image pi
+                 WHERE pi.product_id = p.product_id AND pi.image_type = 'GALLERY'
+                 ORDER BY pi.sort_order LIMIT 1) AS thumbnailUrl,
+               COALESCE(prs.avg_rating, 0)   AS avgRating,
+               COALESCE(prs.review_count, 0) AS reviewCount
+        FROM product p
+            LEFT JOIN category c ON c.category_id = p.category_id
+            LEFT JOIN product_review_stats prs ON prs.product_id = p.product_id
+        WHERE p.product_id = #{productId} AND p.is_deleted = false
     </select>
 
-    <insert id="insertProduct" parameterType="com.gwana.server.dto.product.ProductUpdateRequest" useGeneratedKeys="true" keyProperty="productId">
-        INSERT INTO product (
-            product_name,
-            category_id,
-            category_name,
-            images,
-            infos,
-            price,
-            shipping_price,
-            created_by,
-            created_at
-        ) VALUES (
-            #{productName},
-            #{categoryId},
-            #{categoryName},
-            #{images},
-            #{infos},
-            #{price},
-            #{shippingPrice},
-            #{createdBy},
-            #{createdAt}
-        )
+    <!-- detail_content 는 상세 조회에서만 필요하므로 Product 에는 없지만 매핑되어도 무해 -->
+
+    <select id="selectProductVariant" resultType="com.gwana.server.dto.product.ProductVariant">
+        SELECT v.product_variant_id AS productVariantId,
+               v.product_id         AS productId,
+               v.option_label       AS optionLabel,
+               v.price              AS price,
+               v.status             AS status,
+               v.sort_order         AS sortOrder,
+               (SELECT pi.url FROM product_image pi
+                 WHERE pi.product_variant_id = v.product_variant_id AND pi.image_type = 'THUMBNAIL'
+                 LIMIT 1) AS thumbnailUrl
+        FROM product_variant v
+        WHERE v.product_variant_id = #{productVariantId} AND v.is_deleted = false
+    </select>
+
+    <select id="selectVariantThumbnailUrl" resultType="java.lang.String">
+        SELECT url FROM product_image
+        WHERE product_variant_id = #{productVariantId} AND image_type = 'THUMBNAIL'
+        LIMIT 1
+    </select>
+
+    <select id="selectProductVariants" resultType="com.gwana.server.dto.product.ProductVariant">
+        SELECT v.product_variant_id AS productVariantId,
+               v.product_id         AS productId,
+               v.option_label       AS optionLabel,
+               v.price              AS price,
+               v.status             AS status,
+               v.sort_order         AS sortOrder,
+               (SELECT pi.url FROM product_image pi
+                 WHERE pi.product_variant_id = v.product_variant_id AND pi.image_type = 'THUMBNAIL'
+                 LIMIT 1) AS thumbnailUrl
+        FROM product_variant v
+        WHERE v.product_id = #{productId} AND v.is_deleted = false
+        ORDER BY v.sort_order, v.product_variant_id
+    </select>
+
+    <select id="selectProductCommonImages" resultType="com.gwana.server.dto.product.ProductImage">
+        SELECT product_image_id   AS productImageId,
+               product_id         AS productId,
+               product_variant_id AS productVariantId,
+               image_type         AS imageType,
+               url                AS url,
+               alt_text           AS altText,
+               sort_order         AS sortOrder
+        FROM product_image
+        WHERE product_id = #{productId} AND product_variant_id IS NULL
+        ORDER BY image_type, sort_order
+    </select>
+
+    <select id="selectProductAddons" resultType="com.gwana.server.dto.product.ProductAddon">
+        SELECT a.product_addon_id AS productAddonId,
+               a.name             AS name,
+               a.price            AS price
+        FROM product_addon a
+            JOIN product_addon_map m
+              ON m.product_addon_id = a.product_addon_id AND m.product_id = #{productId}
+        WHERE a.is_deleted = false
+        ORDER BY a.product_addon_id
+    </select>
+
+    <!-- 관리자: 상품 등록/수정 시 선택 후보로 쓸 활성 애드온 전체 목록 -->
+    <select id="selectAllAddons" resultType="com.gwana.server.dto.product.ProductAddon">
+        SELECT a.product_addon_id AS productAddonId,
+               a.name             AS name,
+               a.price            AS price
+        FROM product_addon a
+        WHERE a.is_deleted = false
+        ORDER BY a.product_addon_id
+    </select>
+
+    <!-- 관리자: 애드온 등록/수정/삭제 -->
+    <insert id="insertAddon" parameterType="com.gwana.server.dto.product.ProductAddon" useGeneratedKeys="true" keyProperty="productAddonId">
+        INSERT INTO product_addon (name, price, created_at)
+        VALUES (#{name}, #{price}, CURRENT_TIMESTAMP)
     </insert>
 
-    <select id="selectProductOptions" resultType="com.gwana.server.dto.product.ProductOption">
-        SELECT product_option_id,
-               product_id,
-               option_name,
-               option_price,
-               is_required,
-               is_quantity_adjustable
-        FROM product_option
-        WHERE (product_id = #{productId} OR product_id IS NULL)
-        ORDER BY option_name DESC
-    </select>
+    <update id="updateAddon" parameterType="com.gwana.server.dto.product.ProductAddon">
+        UPDATE product_addon
+        SET name       = #{name},
+            price      = #{price},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE product_addon_id = #{productAddonId}
+    </update>
+
+    <update id="softDeleteAddon">
+        UPDATE product_addon
+        SET deleted_at = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE product_addon_id = #{productAddonId}
+    </update>
+
+    <!-- ================= 상품 등록/수정 ================= -->
+
+    <insert id="insertProduct" parameterType="com.gwana.server.dto.product.ProductUpdateRequest"
+            useGeneratedKeys="true" keyProperty="productId">
+        INSERT INTO product (category_id, name, summary, detail_content, status, shipping_price, created_by, created_at)
+        VALUES (#{categoryId}, #{name}, #{summary}, #{detailContent},
+                COALESCE(#{status}, 'ON_SALE'), COALESCE(#{shippingPrice}, 0), #{createdBy}, NOW())
+    </insert>
 
     <update id="updateProduct" parameterType="com.gwana.server.dto.product.ProductUpdateRequest">
         UPDATE product
         <set>
-            <if test="productName != null">product_name = #{productName},</if>
             <if test="categoryId != null">category_id = #{categoryId},</if>
-            <if test="categoryName != null">category_name = #{categoryName},</if>
-            <if test="images != null">images = #{images},</if>
-            <if test="infos != null">infos = #{infos},</if>
-            <if test="price != null">price = #{price},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="detailContent != null">detail_content = #{detailContent},</if>
+            <if test="status != null">status = #{status},</if>
             <if test="shippingPrice != null">shipping_price = #{shippingPrice},</if>
-            modified_at = #{modifiedAt},
-            modified_by = #{modifiedBy}
+            updated_by = #{modifiedBy}
         </set>
         WHERE product_id = #{productId}
     </update>
 
-    <insert id="insertProductOption" parameterType="com.gwana.server.dto.product.ProductOption" useGeneratedKeys="true" keyProperty="productOptionId">
-        INSERT INTO product_option (
-            product_id,
-            option_name,
-            option_price,
-            is_required,
-            is_quantity_adjustable
-        ) VALUES (
-            #{productId},
-            #{optionName},
-            #{optionPrice},
-            #{isRequired},
-            #{isQuantityAdjustable}
+    <update id="updateDisplayPrice">
+        UPDATE product
+        SET display_price = (
+            SELECT MIN(price) FROM product_variant
+            WHERE product_id = #{productId} AND status = 'ON_SALE' AND is_deleted = false
         )
-    </insert>
-
-    <update id="updateProductOption" parameterType="com.gwana.server.dto.product.ProductOption">
-        UPDATE product_option
-        SET option_name = #{optionName},
-            option_price = #{optionPrice}
-        WHERE product_option_id = #{productOptionId}
+        WHERE product_id = #{productId}
     </update>
 
-    <delete id="deleteProductOption">
-        DELETE FROM product_option
-        WHERE product_option_id = #{productOptionId}
+    <insert id="insertVariant" parameterType="com.gwana.server.dto.product.ProductVariant"
+            useGeneratedKeys="true" keyProperty="productVariantId">
+        INSERT INTO product_variant (product_id, option_label, price, status, sort_order)
+        VALUES (#{productId}, #{optionLabel}, #{price}, COALESCE(#{status}, 'ON_SALE'), COALESCE(#{sortOrder}, 0))
+    </insert>
+
+    <update id="updateVariant" parameterType="com.gwana.server.dto.product.ProductVariant">
+        UPDATE product_variant
+        <set>
+            <if test="optionLabel != null">option_label = #{optionLabel},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+        </set>
+        WHERE product_variant_id = #{productVariantId}
+    </update>
+
+    <update id="softDeleteVariant">
+        UPDATE product_variant SET deleted_at = NOW() WHERE product_variant_id = #{productVariantId}
+    </update>
+
+    <select id="selectActiveVariantIds" resultType="java.lang.Long">
+        SELECT product_variant_id FROM product_variant
+        WHERE product_id = #{productId} AND is_deleted = false
+    </select>
+
+    <insert id="insertImage" parameterType="com.gwana.server.dto.product.ProductImage"
+            useGeneratedKeys="true" keyProperty="productImageId">
+        INSERT INTO product_image (product_id, product_variant_id, image_type, url, alt_text, sort_order)
+        VALUES (#{productId}, #{productVariantId}, #{imageType}, #{url}, #{altText}, COALESCE(#{sortOrder}, 0))
+    </insert>
+
+    <delete id="deleteImagesByProduct">
+        DELETE FROM product_image WHERE product_id = #{productId}
     </delete>
+
+    <select id="selectAllImageUrls" resultType="java.lang.String">
+        SELECT url FROM product_image WHERE product_id = #{productId}
+    </select>
+
+    <delete id="deleteVariantThumbnail">
+        DELETE FROM product_image
+        WHERE product_variant_id = #{productVariantId} AND image_type = 'THUMBNAIL'
+    </delete>
+
+    <delete id="deleteImageByUrl">
+        DELETE FROM product_image WHERE url = #{url}
+    </delete>
+
+    <delete id="deleteAddonMapByProduct">
+        DELETE FROM product_addon_map WHERE product_id = #{productId}
+    </delete>
+
+    <insert id="insertAddonMap">
+        INSERT IGNORE INTO product_addon_map (product_id, product_addon_id)
+        VALUES (#{productId}, #{addonId})
+    </insert>
+
+    <!-- ================= 상품 문의 ================= -->
 
     <select id="selectProductInquiryCount" resultType="long">
         SELECT COUNT(*)
         FROM inquiry i
         <where>
-            <if test="productId != null and productId != ''">
-                AND product_id = #{productId}
+            <if test="productId != null">
+                AND i.product_id = #{productId}
             </if>
             <if test="isAnswered != null and isAnswered != ''">
-                AND is_answered = #{isAnswered}
+                AND i.is_answered = #{isAnswered}
             </if>
             <if test='excludeSecret != null and excludeSecret == "Y"'>
-                AND is_secret = 'N'
+                AND i.is_secret = 'N'
             </if>
             AND i.upper_inquiry_id IS NULL
         </where>
@@ -224,7 +364,7 @@
                 AND i.is_secret = 'N'
             </if>
         </where>
-        ORDER BY created_at DESC
+        ORDER BY i.created_at DESC
         LIMIT #{size} OFFSET #{offset}
     </select>
 </mapper>

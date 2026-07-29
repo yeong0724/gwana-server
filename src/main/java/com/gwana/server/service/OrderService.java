@@ -6,7 +6,7 @@ import com.gwana.server.dto.cart.Cart;
 import com.gwana.server.dto.cart.CartItem;
 import com.gwana.server.dto.order.*;
 import com.gwana.server.dto.product.Product;
-import com.gwana.server.dto.product.ProductOption;
+import com.gwana.server.dto.product.ProductVariant;
 import com.gwana.server.dto.user.AuthUser;
 import com.gwana.server.mapper.OrderMapper;
 import io.hypersistence.tsid.TSID;
@@ -43,20 +43,20 @@ public class OrderService {
 
             Product product = productService.getProduct(productId);
 
-            String productName = product.getProductName();
+            String productName = product.getName();
             String categoryName = product.getCategoryName();
-            String productThumbnailUrl = product.getImages()[0];
-            shippingFee += product.getShippingPrice();
+            String productThumbnailUrl = product.getThumbnailUrl();
+            shippingFee += product.getShippingPrice();   // 상품별 배송비(0=무료) 합산
 
             List<CartItem> cartItems = cart.getCartItems();
 
             for (CartItem cartItem : cartItems) {
                 int quantity = cartItem.getQuantity();
-                Long productOptionId = cartItem.getProductOptionId();
-                ProductOption productOption = productService.getProductOption(productOptionId);
-                int optionPrice = productOption.getOptionPrice();
+                Long productVariantId = cartItem.getProductVariantId();
+                ProductVariant variant = productService.getProductVariant(productVariantId);
+                int price = variant.getPrice();   // 가격은 서버(variant)에서만 결정
 
-                productAmount += quantity * optionPrice;
+                productAmount += quantity * price;
 
                 CreateOrderItem createOrderItem = CreateOrderItem.builder()
                         .orderId(orderId)
@@ -64,19 +64,15 @@ public class OrderService {
                         .productName(productName)
                         .productThumbnailUrl(productThumbnailUrl)
                         .categoryName(categoryName)
-                        .productOptionId(productOptionId)
-                        .optionName(productOption.getOptionName())
-                        .optionPrice(optionPrice)
+                        .productVariantId(productVariantId)
+                        .optionName(variant.getOptionLabel())
+                        .optionPrice(price)
                         .quantity(quantity)
-                        .isRequired(productOption.isRequired())
+                        .isRequired(true)
                         .build();
 
                 createOrderItems.add(createOrderItem);
             }
-        }
-
-        if (productAmount > 50000) {
-            shippingFee = 0;
         }
 
         int totalAmount = productAmount + shippingFee - discountAmount;
@@ -116,7 +112,7 @@ public class OrderService {
 
                     List<OrderOption> orderOptions = rows.stream()
                             .map(option -> OrderOption.builder()
-                                    .productOptionId(option.getProductOptionId())
+                                    .productVariantId(option.getProductVariantId())
                                     .optionName(option.getOptionName())
                                     .optionPrice(option.getOptionPrice())
                                     .quantity(option.getQuantity())

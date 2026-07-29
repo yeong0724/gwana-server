@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpsertCartItemRequest {
-    private Long productOptionId;
+    private Long productVariantId;
     private Long cartId;
     private int quantity;
 }

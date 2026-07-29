@@ -30,7 +30,9 @@ public enum ErrorCode {
     S3_CONNECTION_ERROR("6007", "파일 서버 연결에 실패했습니다."),
     FILE_COUNT_EXCEEDED("6008", "업로드 허용 개수를 초과했습니다."),
     INVALID_FOLDER_PATH("6009", "허용되지 않는 업로드 경로입니다."),
-    INVALID_IMAGE_REFERENCE("6010", "유효하지 않은 이미지 참조입니다.");
+    INVALID_IMAGE_REFERENCE("6010", "유효하지 않은 이미지 참조입니다."),
+    INVALID_PRODUCT_STATUS("7001", "유효하지 않은 상품 상태입니다."),
+    PRODUCT_NOT_FOUND("7002", "존재하지 않는 상품입니다.");
 
     private final String code;
     private final String message;

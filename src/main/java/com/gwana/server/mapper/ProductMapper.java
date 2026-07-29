@@ -10,24 +10,67 @@ import java.util.List;
 
 @Mapper
 public interface ProductMapper {
+    // 조회
     List<Product> selectProductList(ProductListRequest productListRequest);
 
-    Product selectProduct(@Param("productId")Long productId);
+    List<Product> selectAdminProductList(ProductListRequest productListRequest);
 
-    ProductOption selectProductOption(@Param("productOptionId")Long productOptionId);
+    void updateProductStatus(@Param("productId") Long productId, @Param("status") String status);
 
-    List<ProductOption> selectProductOptions(@Param("productId")Long productId);
+    Product selectProduct(@Param("productId") Long productId);
 
+    ProductVariant selectProductVariant(@Param("productVariantId") Long productVariantId);
+
+    List<ProductVariant> selectProductVariants(@Param("productId") Long productId);
+
+    List<ProductImage> selectProductCommonImages(@Param("productId") Long productId);
+
+    List<ProductAddon> selectProductAddons(@Param("productId") Long productId);
+
+    List<ProductAddon> selectAllAddons();
+
+    // 애드온 관리(등록/수정/삭제)
+    void insertAddon(ProductAddon addon);
+
+    void updateAddon(ProductAddon addon);
+
+    void softDeleteAddon(@Param("productAddonId") Long productAddonId);
+
+    // 상품 등록/수정
     void insertProduct(ProductUpdateRequest productUpdateRequest);
 
     void updateProduct(ProductUpdateRequest productUpdateRequest);
 
-    void insertProductOption(ProductOption productOption);
+    void updateDisplayPrice(@Param("productId") Long productId);
 
-    void updateProductOption(ProductOption productOption);
+    // variant
+    void insertVariant(ProductVariant variant);
 
-    void deleteProductOption(ProductOptionDeleteRequest productOption);
+    void updateVariant(ProductVariant variant);
 
+    void softDeleteVariant(@Param("productVariantId") Long productVariantId);
+
+    List<Long> selectActiveVariantIds(@Param("productId") Long productId);
+
+    // 이미지
+    void insertImage(ProductImage image);
+
+    void deleteImagesByProduct(@Param("productId") Long productId);
+
+    List<String> selectAllImageUrls(@Param("productId") Long productId);
+
+    String selectVariantThumbnailUrl(@Param("productVariantId") Long productVariantId);
+
+    void deleteVariantThumbnail(@Param("productVariantId") Long productVariantId);
+
+    void deleteImageByUrl(@Param("url") String url);
+
+    // 애드온 매핑
+    void deleteAddonMapByProduct(@Param("productId") Long productId);
+
+    void insertAddonMap(@Param("productId") Long productId, @Param("addonId") Long addonId);
+
+    // 상품 문의
     long selectProductInquiryCount(ProductInquiryListSearchRequest productInquiryListSearchRequest);
 
     List<Inquiry> selectProductInquiryList(ProductInquiryListSearchRequest productInquiryListSearchRequest);

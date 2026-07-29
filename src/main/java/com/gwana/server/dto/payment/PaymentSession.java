@@ -10,11 +10,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PaymentSession {
+    private Long productVariantId;
     private Long productId;
     private String productName;
     private String categoryName;
+    private String optionLabel;
     private int quantity;
     private int price;
     private int shippingPrice;
-    private String[] images;
+    private String thumbnailUrl;
 }

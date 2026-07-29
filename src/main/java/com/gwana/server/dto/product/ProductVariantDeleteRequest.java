@@ -1,4 +1,4 @@
-package com.gwana.server.dto.order;
+package com.gwana.server.dto.product;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderOption {
+public class ProductVariantDeleteRequest {
     private Long productVariantId;
-    private String optionName;
-    private int optionPrice;
-    private int quantity;
-    private Boolean isRequired;
+    private Long productId;   // 삭제 후 displayPrice 재계산용
 }

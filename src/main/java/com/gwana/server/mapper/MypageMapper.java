@@ -2,6 +2,7 @@ package com.gwana.server.mapper;
 
 import com.gwana.server.dto.mypage.*;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -21,7 +22,13 @@ public interface MypageMapper {
 
     int insertReview(ReviewCreateRequest reviewCreateRequest);
 
-    int upsertReviewStats(ReviewCreateRequest reviewCreateRequest);
+    void insertReviewImage(@Param("productReviewId") Long productReviewId,
+                           @Param("url") String url,
+                           @Param("sortOrder") int sortOrder);
+
+    void recomputeReviewStats(@Param("productId") Long productId);
+
+    List<String> selectReviewImages(@Param("productReviewId") Long productReviewId);
 
     ReviewCountResponse selectReviewCount(Long productId);
 

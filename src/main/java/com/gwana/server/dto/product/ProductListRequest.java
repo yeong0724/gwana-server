@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductListRequest {
-    private String categoryId;
+    private String categorySlug;   // null/빈값이면 전체 (예: greenTea)
 }

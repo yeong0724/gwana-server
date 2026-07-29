@@ -15,7 +15,7 @@ public class CreateOrderItem {
     private String productName;
     private String productThumbnailUrl;
     private String categoryName;
-    private Long productOptionId;
+    private Long productVariantId;
     private String optionName;
     private int optionPrice;
     private int quantity;

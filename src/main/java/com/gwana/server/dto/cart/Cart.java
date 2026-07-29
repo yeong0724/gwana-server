@@ -12,11 +12,10 @@ import java.util.List;
 public class Cart {
     private Long cartId;
     private Long productId;
-    private String productName;
-    private String categoryId;
+    private String name;
+    private Long categoryId;
     private String categoryName;
-    private int price;
+    private String thumbnailUrl;   // gallery[0]
     private int shippingPrice;
-    private String[] images;
     private List<CartItem> cartItems;
 }

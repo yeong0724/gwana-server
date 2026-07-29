@@ -1,0 +1,335 @@
+// =====================================================================
+// 전체 DB 목표 상태 (재설계) — dbdiagram.io 왼쪽 에디터에 통째로 붙여넣기
+// 설계 상세/이유: docs/product-redesign.md  /  2026-07-28
+//
+// 구성:
+//   [A] 기존 유지 테이블 (users/인증/장바구니/주문/결제/문의) — 현행 컬럼 그대로(user_id/order_id/session_id 등)
+//   [B] 재설계된 상품(카탈로그) 도메인 — PK/FK를 '테이블명_id' 로 통일
+// =====================================================================
+
+// ---------- Enums ----------
+Enum user_role {
+  ADMIN
+  GENERAL
+}
+
+Enum product_status {
+  ON_SALE
+  SOLD_OUT
+  HIDDEN
+  DISCONTINUED
+}
+
+Enum variant_status {
+  ON_SALE
+  SOLD_OUT
+  HIDDEN
+}
+
+Enum image_type {
+  THUMBNAIL
+  GALLERY
+  DETAIL
+}
+
+Enum review_status {
+  VISIBLE
+  HIDDEN
+  REPORTED
+}
+
+// =====================================================================
+// [A] 기존 유지 테이블 (현행 스키마 그대로 — 컬럼명 미변경)
+// =====================================================================
+
+Table users {
+  user_id        varchar(100) [pk]
+  customer_key   varchar(100) [not null]
+  username       varchar(50)  [not null]
+  password       varchar(255) [note: '소셜 전용이면 NULL']
+  email          varchar(100) [unique, note: 'NULL 허용, 전역 UNIQUE']
+  phone          varchar(20)
+  profile_image  varchar(100)
+  zonecode       varchar(20)
+  road_address   varchar(100)
+  detail_address varchar(300)
+  role           user_role    [not null, default: 'GENERAL']
+  created_at     datetime
+  created_by     varchar(50)
+  modified_at    datetime
+  modified_by    varchar(50)
+}
+
+Table social_account {
+  social_account_id       varchar(100) [pk]
+  user_id                 varchar(100) [not null]
+  provider                varchar(50)  [not null]
+  provider_id             bigint       [not null]
+  access_token            text
+  access_token_expires_at datetime
+  created_at              datetime
+  created_by              varchar(50)
+  modified_at             datetime
+  modified_by             varchar(50)
+
+  indexes {
+    (provider, provider_id) [unique]
+  }
+}
+
+Table refresh_token {
+  refresh_token_id varchar(100) [pk]
+  user_id          varchar(100) [unique, note: '사용자당 1행']
+  token_hash       char(64)     [not null]
+  expires_at       datetime     [not null]
+  created_at       datetime
+  created_by       varchar(50)
+  modified_at      datetime
+  modified_by      varchar(50)
+}
+
+Table cart {
+  cart_id     bigint      [pk, increment]
+  product_id  bigint      [not null]
+  user_id     varchar(50) [not null]
+  created_at  datetime
+  created_by  varchar(50)
+  modified_at datetime
+  modified_by varchar(50)
+
+  indexes {
+    (user_id, product_id) [unique]
+  }
+}
+
+Table cart_item {
+  cart_item_id       bigint [pk, increment]
+  cart_id            bigint [not null]
+  product_variant_id bigint [not null, note: '재설계: 기존 product_option_id(varchar) → variant 참조로 이관']
+  quantity           int    [not null, default: 1]
+
+  indexes {
+    (cart_id, product_variant_id) [unique]
+  }
+}
+
+// 주의: 실제 orders 에는 PK 가 없음(검토 대상). 다이어그램상 order_id 를 PK 로 표시.
+Table orders {
+  order_id                varchar(100) [pk]
+  order_status            varchar(20)  [not null]
+  product_amount          int          [not null, default: 0]
+  shipping_fee            int          [not null, default: 0]
+  discount_amount         int          [not null, default: 0]
+  total_amount            int          [not null, default: 0]
+  created_at              datetime
+  created_by              varchar(50)  [note: '주문자 user_id']
+  sender_name             varchar(100)
+  sender_phone            varchar(20)
+  recipient_name          varchar(100)
+  recipient_phone         varchar(20)
+  zonecode                varchar(10)
+  road_address            varchar(255)
+  detail_address          varchar(255)
+  delivery_request        varchar(500)
+  delivery_request_detail varchar(500)
+  ordered_at              datetime
+  paid_at                 datetime
+  cancelled_at            datetime
+  refunded_at             datetime
+  modified_at             datetime
+  modified_by             varchar(50)
+}
+
+Table order_items {
+  order_item_id         bigint       [pk, increment]
+  order_id              varchar(100) [not null]
+  product_id            bigint       [not null]
+  product_name          varchar(255) [not null]
+  product_thumbnail_url varchar(255) [not null]
+  category_name         varchar(50)  [not null]
+  product_variant_id    bigint       [not null, note: '재설계: 기존 product_option_id → variant 참조로 이관']
+  option_name           varchar(100) [not null]
+  option_price          int          [not null, default: 0]
+  quantity              int          [not null, default: 0]
+  is_required           boolean      [default: true]
+}
+
+Table payment_info {
+  session_id              varchar(50)  [pk]
+  order_id                varchar(50)  [not null]
+  user_id                 varchar(50)  [not null]
+  total_price             int          [not null]
+  total_shipping_price    int          [not null]
+  total_amount            int          [not null]
+  sender_name             varchar(100) [not null]
+  sender_phone            varchar(20)  [not null]
+  recipient_name          varchar(100) [not null]
+  recipient_phone         varchar(20)  [not null]
+  zonecode                varchar(10)  [not null]
+  road_address            varchar(255) [not null]
+  detail_address          varchar(255) [not null]
+  delivery_request        varchar(500) [not null]
+  delivery_request_detail varchar(500)
+  expires_at              datetime     [not null]
+}
+
+Table payment_session {
+  payment_session_id bigint      [pk, increment]
+  session_id         varchar(50) [not null]
+  product_variant_id bigint      [not null, note: '재설계: variant 참조로 이관']
+  quantity           int         [not null, default: 0]
+  user_id            varchar(50) [not null]
+  expires_at         datetime    [not null]
+}
+
+Table inquiry {
+  inquiry_id       bigint       [pk, increment]
+  upper_inquiry_id bigint       [note: 'self: 답변 대상 문의글']
+  product_id       varchar(50)  [note: '재설계: product.product_id(bigint) 로 통일 권장']
+  title            varchar(200) [not null]
+  content          text         [not null]
+  is_secret        char(1)      [not null, default: 'N']
+  is_answered      char(1)      [default: 'N']
+  created_at       datetime
+  created_by       varchar(50)
+  modified_at      datetime
+  modified_by      varchar(50)
+}
+
+// =====================================================================
+// [B] 재설계된 상품(카탈로그) 도메인 — PK/FK 를 '테이블명_id' 로 통일
+// =====================================================================
+
+Table category {
+  category_id bigint [pk, increment]
+  parent_id   bigint [note: 'self FK, 루트면 NULL']
+  name        varchar(100) [not null]
+  slug        varchar(120) [unique, not null]
+  depth       tinyint [not null, default: 1]
+  sort_order  int [not null, default: 0]
+  is_active   boolean [not null, default: true]
+}
+
+Table product {
+  product_id  bigint [pk, increment]
+  category_id bigint [not null]
+  name        varchar(255) [not null]
+  summary     varchar(500)
+  detail_content text
+  status      product_status [not null, default: 'ON_SALE']
+  display_price int [note: '진열용 최저가 캐시(SSOT 아님)']
+  shipping_price int [not null, default: 0, note: '0=무료배송, 그 외 배송비(원)']
+  sale_start_at datetime
+  sale_end_at   datetime
+  created_at  datetime
+  updated_at  datetime
+  deleted_at  datetime
+  is_deleted  boolean [not null, default: false, note: '(deleted_at IS NOT NULL) 생성컬럼. 조회 필터는 이 값 사용']
+}
+
+Table product_variant {
+  product_variant_id bigint [pk, increment]
+  product_id bigint [not null]
+  option_label varchar(200) [not null, note: '예: 세작 80g (관리자 직접 입력)']
+  price int [not null, note: '가격 SSOT']
+  status variant_status [not null, default: 'ON_SALE']
+  sort_order int [not null, default: 0]
+  deleted_at datetime
+  is_deleted boolean [not null, default: false, note: '(deleted_at IS NOT NULL) 생성컬럼']
+}
+
+Table product_addon {
+  product_addon_id bigint [pk, increment]
+  name varchar(100) [not null]
+  price int [not null, note: '추가금']
+  deleted_at datetime
+  is_deleted boolean [not null, default: false, note: '(deleted_at IS NOT NULL) 생성컬럼. 구 is_active 대체']
+}
+
+Table product_addon_map {
+  product_id bigint [not null]
+  product_addon_id bigint [not null]
+  indexes { (product_id, product_addon_id) [pk] }
+}
+
+Table product_image {
+  product_image_id bigint [pk, increment]
+  product_id bigint [not null]
+  product_variant_id bigint [unique, note: '옵션별 이미지면 지정 (variant당 썸네일 1건)']
+  image_type image_type [not null, default: 'GALLERY']
+  url varchar(500) [not null]
+  alt_text varchar(200)
+  sort_order int [not null, default: 0]
+}
+
+Table product_review {
+  product_review_id bigint [pk, increment]
+  product_id bigint [not null]
+  product_variant_id bigint
+  order_item_id bigint [note: '검증구매 연결 (order_items 참조)']
+  user_id varchar(100) [not null]
+  rating "decimal(2,1)" [not null]
+  content varchar(1000)
+  status review_status [not null, default: 'VISIBLE']
+  created_at datetime
+  updated_at datetime
+}
+
+Table product_review_image {
+  product_review_image_id bigint [pk, increment]
+  product_review_id bigint [not null]
+  url varchar(500) [not null]
+  sort_order int [not null, default: 0]
+}
+
+Table product_review_stats {
+  product_review_stats_id bigint [pk, increment]
+  product_id bigint [unique, not null]
+  avg_rating "decimal(2,1)" [not null, default: 0]
+  review_count int [not null, default: 0]
+  rating_1_cnt int [not null, default: 0]
+  rating_2_cnt int [not null, default: 0]
+  rating_3_cnt int [not null, default: 0]
+  rating_4_cnt int [not null, default: 0]
+  rating_5_cnt int [not null, default: 0]
+}
+
+// =====================================================================
+// 관계 (Ref)
+// =====================================================================
+
+// --- 기존 도메인 내부 ---
+Ref: social_account.user_id > users.user_id
+Ref: refresh_token.user_id - users.user_id
+Ref: cart.user_id > users.user_id
+Ref: cart_item.cart_id > cart.cart_id
+Ref: orders.created_by > users.user_id
+Ref: order_items.order_id > orders.order_id
+Ref: payment_info.user_id > users.user_id
+Ref: payment_info.order_id > orders.order_id
+Ref: payment_session.session_id > payment_info.session_id
+Ref: payment_session.user_id > users.user_id
+Ref: inquiry.upper_inquiry_id > inquiry.inquiry_id
+
+// --- 기존 → 재설계 카탈로그 연결 ---
+Ref: cart.product_id > product.product_id
+Ref: cart_item.product_variant_id > product_variant.product_variant_id
+Ref: order_items.product_id > product.product_id
+Ref: order_items.product_variant_id > product_variant.product_variant_id
+Ref: payment_session.product_variant_id > product_variant.product_variant_id
+Ref: inquiry.product_id > product.product_id
+Ref: product_review.order_item_id > order_items.order_item_id
+Ref: product_review.user_id > users.user_id
+
+// --- 재설계 카탈로그 내부 ---
+Ref: category.parent_id > category.category_id
+Ref: product.category_id > category.category_id
+Ref: product_variant.product_id > product.product_id
+Ref: product_addon_map.product_id > product.product_id
+Ref: product_addon_map.product_addon_id > product_addon.product_addon_id
+Ref: product_image.product_id > product.product_id
+Ref: product_image.product_variant_id > product_variant.product_variant_id
+Ref: product_review.product_id > product.product_id
+Ref: product_review.product_variant_id > product_variant.product_variant_id
+Ref: product_review_image.product_review_id > product_review.product_review_id
+Ref: product_review_stats.product_id > product.product_id
